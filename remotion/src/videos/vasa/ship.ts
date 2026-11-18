@@ -295,7 +295,7 @@ export class Ship {
       const a = f.m.geometry.attributes.position as THREE.BufferAttribute, nx = 15;
       for (let i = 0; i < a.count; i++) {
         const u = (i % nx) / (nx - 1), row = Math.floor(i / nx), y = (0.5 - row / 2) * f.h;
-        const amp = 0.1 + 0.16 * p.flag;
+        const amp = 0.07 + 0.08 * p.flag;
         a.setXYZ(i, -u * f.w, y - u * 0.15 * (1 - p.flag) * f.h, amp * u * Math.sin(t * (5 + 4 * p.flag) - u * 5) * f.h);
       }
       a.needsUpdate = true;

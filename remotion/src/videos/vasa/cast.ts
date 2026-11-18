@@ -361,20 +361,22 @@ const salute = (out: Stage, f: number, ship: Ship) => {
 /** the sea pouring in through the open port-side gun ports as she heels */
 const flooding = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
   if (sp.heel > -0.3 || sp.sink > 6) return;
-  PORT_X.forEach((x, i) => {
-    const m = ship.toWorld(x, PORT_ROWS[0].y, -halfB(x, PORT_ROWS[0].y) - 0.3, new THREE.Vector3());
-    if (m.y > 2.6) return;
+  // jets at whichever row of open ports is at the water line (the lower row goes under first, then the upper one)
+  for (const row of PORT_ROWS) PORT_X.forEach((x, i) => {
+    const m = ship.toWorld(x, row.y, -halfB(x, row.y) - 0.15, new THREE.Vector3());
+    if (m.y < -0.4 || m.y > 1.6) return;
     const u = q(((f * 0.06 + hh(i, 9)) % 1), 30);
-    out.fx.push({ key: `splash${u}`, cw: 800, ch: 800, draw: (p) => fxSplash(p, u), x: m.x, y: 1.3, z: m.z - 0.6, w: 3.8, h: 3.8 });
-    out.fx.push({ key: `jet${u}`, cw: 300, ch: 300, draw: (p) => waterJet(p, u), x: m.x, y: Math.max(0.9, m.y + 0.2), z: m.z + 0.4, w: 1.6, h: 1.6, rot: -0.5 });
+    out.fx.push({ key: `jet${u}`, cw: 400, ch: 300, draw: (p) => waterJet(p, u), x: m.x - 0.35, y: Math.max(0.45, m.y + 0.1), z: m.z - 0.45, w: 2.2, h: 1.65 });
   });
 };
 /** water spouting INTO a gun port (canvas 300 x 300, flows from the left edge to the hole at the right) */
 const waterJet = (p: Pen, u: number) => {
-  for (let k = 0; k < 4; k++) {
-    const y = 110 + k * 26 + 8 * Math.sin(u * 12 + k);
-    p.stroke([[10, y - 30], [120, y - 10 + 6 * Math.sin(u * 9 + k)], [230, y], [290, y + 6]], 22 - 3 * k, k % 2 ? "#cfe8fa" : "#8cc8f0");
-  }
+  // a cyan tongue of sea curling up out of the harbour and over the sill into the port (canvas 400 x 300, port at top right)
+  const w = 6 * Math.sin(u * Math.PI * 2);
+  const body: [number, number][] = [[0, 300], [60, 230 + w], [150, 170 - w], [250, 120 + w], [330, 95], [370, 110], [330, 150], [250, 185 - w], [160, 240 + w], [90, 300]];
+  p.poly(body, "#4fb6e6", 7);
+  p.stroke([[40, 280], [120, 215 + w], [220, 160 - w], [320, 112]], 12, "#bfe8ff");
+  for (let k = 0; k < 3; k++) p.ell(250 + 40 * k + 10 * Math.sin(u * 7 + k), 95 - 18 * k, 12 - 3 * k, 10 - 2 * k, "#e6f6ff", 4);
 };
 /** water streaming off the hull as she is raised (shot 18) */
 const drips = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {

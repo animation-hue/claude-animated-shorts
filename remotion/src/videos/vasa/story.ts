@@ -36,7 +36,7 @@ export const SHOTS: ShotDef[] = [
   { id: 8, a: 567, b: 836, light: "day", crowd: "test", tau: I },        // thirty sailors running
   { id: 9, a: 836, b: 910, light: "day", crowd: "admiral", tau: I },     // "If only His Majesty were at home"
   { id: 10, a: 910, b: 945, light: "day", crowd: "launch", tau: I },     // and launched it anyway
-  { id: 11, a: 945, b: 1034, light: "golden", crowd: "shore", tau: I, sunAz: 125, sunEl: 12 },  // 10 August, farewell salute
+  { id: 11, a: 945, b: 1034, light: "golden", crowd: "shore", tau: I, sunAz: 160, sunEl: 14 },  // 10 August, farewell salute
   { id: 12, a: 1034, b: 1181, light: "golden", crowd: "sail", tau: I, sunAz: 125, sunEl: 12 },  // 1300 m out, the gust, the sea comes in
   { id: 13, a: 1181, b: 1397, light: "golden", crowd: "masts", tau: I }, // luckily 32 m deep / masts sticking out
   { id: 14, a: 1397, b: 1530, light: "day", crowd: "boat", tau: I },     // stood up in a rowing boat?
@@ -243,6 +243,16 @@ const CAMS: Record<number, Key[]> = {
   17: [{ f: 1735, s: S17a }, { f: 1783, cut: true, s: S17b }],
   18: [{ f: 1805, s: S18a }],
   19: [{ f: 1893, s: S19a }, { f: 2003, cut: true, s: S19b }],
+};
+
+/** sun override for one camera segment (key = shot id : segment start frame), camera-relative like ShotDef.sunAz */
+export const SUN_SEG: Record<string, { az: number; el: number }> = { "12:1133": { az: 165, el: 22 } };
+/** frame range [a, b) of the camera segment (between cuts) that frame f of shot id belongs to */
+export const segmentOf = (id: number, f: number): [number, number] => {
+  const s = SHOTS[id - 1];
+  let a = s.a, b = s.b;
+  for (const k of CAMS[id]) { if (k.cut && k.f <= f) a = k.f; if (k.cut && k.f > f) { b = Math.min(b, k.f); break; } }
+  return [Math.max(a, s.a), b];
 };
 
 // impact kicks (seconds, gain): the hook's sink, the lurch, the salute, the gust, the flood

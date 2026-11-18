@@ -12,7 +12,7 @@ import { TONE, CHAR, LFB, untone } from "./shade";
 import { NOINK } from "./ink";
 import { Pool, Actor, Fx, stage, GANGWAY_X } from "./cast";
 import { Ship, RowBoat } from "./ship";
-import { FPS, D0, SHOTS, camAt, shipPose, V3, FOREGROUND, ShotDef, TABLE_AT, STOOL_AT, BOAT_AT, MOOR } from "./story";
+import { FPS, D0, SHOTS, camAt, shipPose, V3, FOREGROUND, ShotDef, TABLE_AT, STOOL_AT, BOAT_AT, MOOR, segmentOf, SUN_SEG } from "./story";
 import { boatRoll } from "./cast";
 
 // ---------------- assets ----------------
@@ -231,19 +231,21 @@ export class World {
   }
 
   /** camera-relative sun, frozen per shot */
-  private shotSun(id: number, s: ShotDef, L: LightPreset) {
-    let v = this.sunCache.get(id);
+  private shotSun(id: number, s: ShotDef, L: LightPreset, f0: number) {
+    const [sa, sb] = segmentOf(id, f0), ck = id * 100000 + sa;
+    let v = this.sunCache.get(ck);
     if (v) return v;
     let fx = 0, fz = 0;
-    for (let f = s.a; f < s.b; f += 3) {
+    for (let f = sa; f < sb; f += 3) {
       const c = camAt(id, f), x = c.look[0] - c.pos[0], z = c.look[2] - c.pos[2], n = Math.hypot(x, z) || 1;
       fx += x / n; fz += z / n;
     }
     const n = Math.hypot(fx, fz) || 1; fx /= n; fz /= n;
-    const az = THREE.MathUtils.degToRad(s.sunAz ?? L.az), el = THREE.MathUtils.degToRad(s.sunEl ?? L.el);
+    const so = SUN_SEG[`${id}:${sa}`];
+    const az = THREE.MathUtils.degToRad(so?.az ?? s.sunAz ?? L.az), el = THREE.MathUtils.degToRad(so?.el ?? s.sunEl ?? L.el);
     const hx = fx * Math.cos(az) - fz * Math.sin(az), hz = fz * Math.cos(az) + fx * Math.sin(az);
     v = new THREE.Vector3(hx * Math.cos(el), Math.sin(el), hz * Math.cos(el)).normalize();
-    this.sunCache.set(id, v);
+    this.sunCache.set(ck, v);
     return v;
   }
 
@@ -259,7 +261,7 @@ export class World {
     const focus = V(...c.look), dist = cam.position.distanceTo(focus);
     cam.layers.enable(NOINK);
     // ---- light rig ----
-    const K = LOOK[s.light], sunDir = this.shotSun(id, s, L);
+    const K = LOOK[s.light], sunDir = this.shotSun(id, s, L, f);
     this.hemi.color.set(L.sky); this.hemi.groundColor.set(L.ground); this.hemi.intensity = L.hemiI;
     this.sun.color.set(L.sunCol); this.sun.intensity = L.sunI;
     let Rr = THREE.MathUtils.clamp(dist * 1.15 + 7, 12, 95);
