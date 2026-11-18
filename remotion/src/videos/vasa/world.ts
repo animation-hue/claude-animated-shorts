@@ -16,9 +16,9 @@ import { FPS, D0, SHOTS, camAt, shipPose, V3, FOREGROUND, ShotDef, TABLE_AT, STO
 import { boatRoll } from "./cast";
 
 // ---------------- assets ----------------
-const KENNEY = ["tree_oak", "tree_default", "tree_detailed", "tree_fat", "tree_cone", "tree-high-round", "tree", "plant_bushLarge", "plant_bushDetailed",
-  "plant_bush", "hedge", "flower_redA", "flower_yellowA", "flower_purpleA", "grass_large", "grass", "lily_large", "lantern", "cart", "stall-red",
-  "stall-green", "stall-bench", "banner-red", "banner-green", "windmill", "canoe"];
+// The Kenney kit is not shipped in this repo; the town draws its own cartoon trees/plants (build.ts VEG) without it.
+// Add names here only if the .glb files are placed in public/vasa/kenney/.
+const KENNEY: string[] = [];
 let kitP: Promise<Kit> | null = null;
 export const loadKit = () => {
   if (!kitP) {
