@@ -359,24 +359,31 @@ const salute = (out: Stage, f: number, ship: Ship) => {
   });
 };
 /** the sea pouring in through the open port-side gun ports as she heels */
-const flooding = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
+const flooding = (out: Stage, f: number, sp: ShipPose, ship: Ship, cam: CamInfo) => {
   if (sp.heel > -0.3 || sp.sink > 6) return;
-  // jets at whichever row of open ports is at the water line (the lower row goes under first, then the upper one)
+  // a soft curl of sea over the sill of whichever row of open ports is at the water line; the card is placed so the
+  // curl's end (canvas 300, 150 of 400 x 300) lands in the port opening
+  const W = 3.4, H = 2.55, ox = ((300 - 200) / 400) * W, oy = ((150 - 150) / 300) * H;
   for (const row of PORT_ROWS) PORT_X.forEach((x, i) => {
-    const m = ship.toWorld(x, row.y, -halfB(x, row.y) - 0.15, new THREE.Vector3());
+    const m = ship.toWorld(x, row.y, -halfB(x, row.y) - 0.1, new THREE.Vector3());
     if (m.y < -0.4 || m.y > 1.6) return;
-    const u = q(((f * 0.06 + hh(i, 9)) % 1), 30);
-    out.fx.push({ key: `jet${u}`, cw: 400, ch: 300, draw: (p) => waterJet(p, u), x: m.x - 0.35, y: Math.max(0.45, m.y + 0.1), z: m.z - 0.45, w: 2.2, h: 1.65 });
+    const u = q(((f * 0.05 + hh(i, 9)) % 1), 24);
+    out.fx.push({ key: `curl${u}`, cw: 400, ch: 300, draw: (p) => waterCurl(p, u), x: m.x - cam.right.x * ox, y: Math.max(0.5, m.y - oy + 0.05), z: m.z - cam.right.z * ox - 1.25, w: W, h: H });
   });
 };
-/** water spouting INTO a gun port (canvas 300 x 300, flows from the left edge to the hole at the right) */
-const waterJet = (p: Pen, u: number) => {
-  // a cyan tongue of sea curling up out of the harbour and over the sill into the port (canvas 400 x 300, port at top right)
-  const w = 6 * Math.sin(u * Math.PI * 2);
-  const body: [number, number][] = [[0, 300], [60, 230 + w], [150, 170 - w], [250, 120 + w], [330, 95], [370, 110], [330, 150], [250, 185 - w], [160, 240 + w], [90, 300]];
-  p.poly(body, "#4fb6e6", 7);
-  p.stroke([[40, 280], [120, 215 + w], [220, 160 - w], [320, 112]], 12, "#bfe8ff");
-  for (let k = 0; k < 3; k++) p.ell(250 + 40 * k + 10 * Math.sin(u * 7 + k), 95 - 18 * k, 12 - 3 * k, 10 - 2 * k, "#e6f6ff", 4);
+const qb = (a: [number, number], c: [number, number], b: [number, number], n = 10) => Array.from({ length: n + 1 }, (_, k) => {
+  const t = k / n, s2 = 1 - t; return [s2 * s2 * a[0] + 2 * s2 * t * c[0] + t * t * b[0], s2 * s2 * a[1] + 2 * s2 * t * c[1] + t * t * b[1]] as [number, number];
+});
+/** soft wavy arc of sea curling up from the surface and down over a sill into the port at (300, 150); foam at the base */
+const waterCurl = (p: Pen, u: number) => {
+  const w = 7 * Math.sin(u * Math.PI * 2), w2 = 7 * Math.cos(u * Math.PI * 2);
+  const outer = [...qb([10, 292], [70, 120 + w], [190, 92 + w2]), ...qb([190, 92 + w2], [285, 82], [306, 150]).slice(1)];
+  const inner = [...qb([284, 160], [262, 128], [205, 132 - w2]), ...qb([205, 132 - w2], [120, 150 + w], [92, 292]).slice(1)];
+  p.poly([...outer, ...inner], "#58bde9", 7);
+  p.stroke(qb([40, 270], [95, 135 + w], [200, 108 + w2], 12), 11, "#a9def7");                  // light along the crest
+  p.stroke(qb([200, 108 + w2], [262, 104], [282, 138], 8), 7, "#e8f7ff");
+  for (let k = 0; k < 6; k++) p.ell(30 + k * 32 + 6 * Math.sin(u * 9 + k), 284 - (k % 2) * 7, 26 - (k % 3) * 4, 13, "#f2fbff", 5); // foam
+  p.ell(298, 146, 9, 7, "#e8f7ff", 4);                                                                   // spill into the port
 };
 /** water streaming off the hull as she is raised (shot 18) */
 const drips = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
@@ -406,12 +413,12 @@ export const stage = (id: number, t: number, f: number, sp: ShipPose, ship: Ship
   switch (s.crowd) {
     case "sail":
       crewOnDeck(out, cam, t, sp, ship, id === 12 ? 8 : 12, (i) => (id === 12 && f > 1090 ? (i % 2 ? "shock" : "nervous") : i % 3 ? "smile_closed" : "grin"));
-      if (id === 12) flooding(out, f, sp, ship);
+      if (id === 12) flooding(out, f, sp, ship, cam);
       break;
     case "masts":
       if (id === 13 && f >= 1150) swimmers(out, cam, t, 9);
       if (id === 13) quayCrowd(out, cam, t, SINK_X - 22, SINK_X + 18, 22, "shock", 3);
-      if (id === 2) flooding(out, f, sp, ship);
+      if (id === 2) flooding(out, f, sp, ship, cam);
       break;
     case "king": {
       stander(out, cam, t, 80, KING, "king", KING_AT[0], KING_AT[1], KING_AT[2], { expr: t < 241 / FPS - L ? "smile_closed" : "stern", facing: 1 });
