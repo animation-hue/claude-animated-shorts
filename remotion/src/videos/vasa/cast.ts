@@ -332,7 +332,7 @@ const boatKid = (out: Stage, cam: CamInfo, t: number, f: number) => {
   out.places.push({ ...pl, roll: rollOn(cam, roll, ax, az) });
   // ripples round the boat when it rocks
   const u = (t * 0.7) % 1;
-  out.fx.push({ key: `ring${q(u, 30)}`, cw: 600, ch: 600, draw: (p) => fxRing(p, q(u, 30)), x: BOAT_AT[0], y: 0.03, z: BOAT_AT[2], w: 5.5, h: 5.5, flat: true });
+  out.fx.push({ key: `ring${q(u, 30)}`, cw: 600, ch: 600, draw: (p) => fxRing(p, q(u, 30)), x: BOAT_AT[0], y: 0.03, z: BOAT_AT[2], w: 3.4 * (0.3 + Math.abs(roll) * 2.5), h: 3.4 * (0.3 + Math.abs(roll) * 2.5), flat: true });
 };
 
 // ---- effects ----
@@ -346,7 +346,7 @@ const smokeCloud = (p: Pen, t: number) => {
 /** the farewell salute: starboard barrels fire one after another from f1019 */
 const salute = (out: Stage, f: number, ship: Ship) => {
   PORT_X.forEach((x, i) => {
-    const f0 = 1019 + i * 1.5, u = (f - f0) / 26;
+    const f0 = 1017 + (PORT_X.length - 1 - i) * 1.2, u = (f - f0) / 26; // bow first: the guns in frame fire on "salute"
     if (u < 0 || u >= 1) return;
     const row = PORT_ROWS[i % 2], m = ship.toWorld(x, row.y, halfB(x, row.y) + 2.4 + 2.2 * u, new THREE.Vector3());
     out.fx.push({ key: `smoke${q(u, 30)}`, cw: 512, ch: 512, draw: (p) => smokeCloud(p, q(u, 30)), x: m.x, y: m.y, z: m.z, w: 3.2 + 2 * u, h: 3.2 + 2 * u, soft: true });
@@ -359,7 +359,7 @@ const flooding = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
     const m = ship.toWorld(x, PORT_ROWS[0].y, -halfB(x, PORT_ROWS[0].y) - 0.3, new THREE.Vector3());
     if (m.y > 0.9 || m.y < -2) return;
     const u = q(((f * 0.045 + hh(i, 9)) % 1), 30);
-    out.fx.push({ key: `splash${u}`, cw: 800, ch: 800, draw: (p) => fxSplash(p, u), x: m.x, y: Math.max(0.2, m.y + 0.5), z: m.z - 0.2, w: 2.2, h: 2.2 });
+    out.fx.push({ key: `splash${u}`, cw: 800, ch: 800, draw: (p) => fxSplash(p, u), x: m.x, y: Math.max(0.6, m.y + 0.9), z: m.z - 0.4, w: 3.2, h: 3.2 });
   });
 };
 /** water streaming off the hull as she is raised (shot 18) */
@@ -420,16 +420,16 @@ export const stage = (id: number, t: number, f: number, sp: ShipPose, ship: Ship
     case "boat": boatKid(out, cam, t, f); break;
     case "inquiry": case "kingInq": {
       const turn = id === 17 && f >= 1739 - 2;
-      [-1.7, 0, 1.7].forEach((dx, k) => stander(out, cam, t, 60 + k, JUDGE(k), `j${k}`, TABLE_AT[0] + dx, D0 + 0.05, TABLE_AT[2] - 0.75,
-        { mode: "sit", expr: turn ? (k === 1 ? "shock" : "nervous") : "stern", look: turn ? 1 : 0 }, 1, 0, false));
+      [-1.35, 0, 1.35].forEach((dx, k) => stander(out, cam, t, 60 + k, JUDGE(k), `j${k}`, TABLE_AT[0] + dx, D0, TABLE_AT[2] - 0.85,
+        { expr: turn ? (k === 1 ? "shock" : "nervous") : "stern", look: turn ? 1 : 0 }, 1, 0, false));
       out.fx.push({ key: "cap", cw: 220, ch: 160, draw: capAlone, x: STOOL_AT[0], y: D0 + 0.66, z: STOOL_AT[2], w: 0.42, h: 0.3 });
       if (id === 17) stander(out, cam, t, 80, KING, "king", KING_INQ[0], KING_INQ[1], KING_INQ[2], { expr: f < 1783 ? "neutral" : "smile_closed", facing: -1 });
       break;
     }
     case "lift": drips(out, f, sp, ship); quayCrowd(out, cam, t, SINK_X - 20, SINK_X + 16, 14, "watch", 5); break;
     case "tourists":
-      for (let i = 0; i < 22; i++) {
-        const x = -9 + ((i + 0.5) / 22) * 20 + (hh(i, 31) - 0.5) * 1.4, z = -31.6 - hh(i, 32) * 3.8;
+      for (let i = 0; i < 24; i++) {
+        const row = i % 3, x = -4.5 + ((Math.floor(i / 3) + 0.5) / 8) * 11 + (hh(i, 31) - 0.5) * 0.9 + row * 0.45, z = -31.7 - row * 1.25 - hh(i, 32) * 0.5;
         if (Math.abs(x - GANGWAY_X) < 1.3 && z > -32.4) continue; // keep the barrier clear
         const kid = i % 7 === 5, o = kid ? KID : VISIT[i % 7];
         const fo: FrontOpts = { expr: (["smile", "grin", "smile_closed", "laugh"] as Expr[])[i % 4], wave: i % 4 === 1 ? q(Math.sin(t * 6 + i), 30) : undefined, look: Math.round(Math.sin(t * 0.7 + i) * 1.2) > 0 ? 1 : 0 };

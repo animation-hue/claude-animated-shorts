@@ -448,8 +448,15 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
     const [bx, by] = R([[cx + (side ? 8 * u : 0), yb + 1 * u]])[0];
     p.ell(bx, by, (side ? 0.62 : 0.68) * W, 0.07 * HH, shade(col, 0.85), ow, 0, 360, (a * 180) / Math.PI);
     const fs = side ? -1 : facing || 1, f0 = R([[cx + fs * wt * 0.6, yb - ht * 0.7]])[0];
-    const plume = curve(f0, R([[cx + fs * wt * 1.3, yb - ht * 1.6]])[0], R([[cx - fs * wt * 0.2, yb - ht * 1.9]])[0], 12);
-    p.stroke(plume, 9 * u, INK); p.stroke(plume, 6 * u, o.dress && o.hat === "plume" ? "#f4f0e6" : "#f4f0e6");
+    // feather: a filled tapered leaf swept back over the crown
+    const spine = curve(f0, R([[cx + fs * wt * 0.9, yb - ht * 1.45]])[0], R([[cx - fs * wt * 0.55, yb - ht * 1.55]])[0], 14);
+    const left: P2[] = [], right: P2[] = [];
+    spine.forEach(([x, y], k) => {
+      const n = spine[Math.min(spine.length - 1, k + 1)], pv = spine[Math.max(0, k - 1)], dx = n[0] - pv[0], dy = n[1] - pv[1], l = Math.hypot(dx, dy) || 1;
+      const w = 9 * u * Math.sin(Math.PI * Math.min(1, (k + 0.6) / spine.length));
+      left.push([x - (dy / l) * w, y + (dx / l) * w]); right.push([x + (dy / l) * w, y - (dx / l) * w]);
+    });
+    p.poly([...left, ...right.reverse()], "#f4f0e6", ow * 0.7);
   } else if (o.hat === "crown") {
     // gold crown with five points and three jewels sitting on short hair
     const hairCol = o.hair ?? "#c08a3e", yb = crown + 0.2 * HH;

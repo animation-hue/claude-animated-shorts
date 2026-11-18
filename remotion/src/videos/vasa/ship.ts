@@ -102,7 +102,7 @@ const deckTex = () => ctex("vasaDeck", 1024, 1024, (g, r) => {
   }
 });
 export const swedishFlag = () => ctex("flagSweden", 320, 200, (g) => {
-  g.fillStyle = "#2a62ad"; g.fillRect(0, 0, 320, 200);
+  g.fillStyle = "#1d4fb0"; g.fillRect(0, 0, 320, 200);
   g.fillStyle = "#f3c63a"; g.fillRect(0, 80, 320, 40); g.fillRect(100, 0, 40, 200);
 });
 const sailTex = () => ctex("vasaSail", 256, 256, (g) => {
@@ -313,7 +313,7 @@ export class RowBoat {
       for (let i = 0; i < NX; i++) for (let j = 0; j < NY; j++) { const a = i * (NY + 1) + j, b = a + NY + 1; if (s > 0) idx.push(a, b, a + 1, b, b + 1, a + 1); else idx.push(a, a + 1, b, b, a + 1, b + 1); }
       const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
     };
-    const m = lam("rowBoat", () => ({ color: "#3f7fbf", side: THREE.DoubleSide })), inner = lam("rowBoatIn", () => ({ color: "#d9b27a" }));
+    const m = lam("rowBoat", () => ({ color: "#c8553a", side: THREE.DoubleSide })), inner = lam("rowBoatIn", () => ({ color: "#d9b27a" }));
     for (const s of [-1, 1]) { const me = new THREE.Mesh(side(s), m); me.castShadow = true; me.receiveShadow = true; R.add(me); }
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.8, B * 1.0).rotateX(-Math.PI / 2).translate(0, 0.02, 0), inner); floor.receiveShadow = true; R.add(floor);
     for (const x of [-0.9, 0.7]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.07, B * 1.5).translate(x, D - 0.12, 0), inner); b.castShadow = true; R.add(b); }
