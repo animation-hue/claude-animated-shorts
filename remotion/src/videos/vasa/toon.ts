@@ -74,7 +74,7 @@ export const ADMIRAL: Outfit = { jacket: "#2e3550", pants: "#2e3550", boots: "#2
   sword: true, moustache: "#d8d2c8", build: "stout" };
 export const KING: Outfit = { jacket: "#2a4f9a", pants: "#2a2f4a", boots: "#3a2a24", hat: "crown", hair: "#c08a3e", sash: "#e2b443", buttons: "#e8c45a",
   sword: true, moustache: "#b07a36", build: "stout" };
-export const BUILDER: Outfit = { jacket: "#8a6a48", pants: "#4a3c30", boots: "#3a2a24", hat: "cap", cap: "#5e4b3a", belt: "#3a2a24", skin: "#f5c9a0", moustache: "#5a3b2a" };
+export const BUILDER: Outfit = { jacket: "#e3d6b8", pants: "#6b4a2e", boots: "#3a2a24", hat: "hair", hair: "#8a5a32", belt: null, skin: "#f5c9a0", moustache: "#8a5a32", build: "stout" };
 export const JUDGE = (v = 0): Outfit => ({ jacket: "#1f1d26", pants: "#1f1d26", boots: "#1f1d26", hat: "plume", cap: ["#1f1d26", "#3a2f45", "#2e3550"][v % 3],
   buttons: "#d9dde0", skin: SKINS[(v + 1) % 4], moustache: v % 2 ? "#d8d2c8" : "#4a3426" });
 export const TOURIST = (v = 0): Outfit => {
@@ -347,7 +347,7 @@ const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing
   mouth(p, F.mouth, mx, my, u);
   if (moustache) for (const s of [-1, 1])
     taper(p, [mx + s * 1.5 * u, cy + 12.5 * u], [mx + s * (stout ? 19 : 15) * u, cy + (stout ? 10.5 : 15) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
-  if (expr === "nervous") p.ell(cx + 40 * u * (facing || 1), cy - 22 * u, 3 * u, 5 * u, "#9fd4ff", 2 * u);
+  if (expr === "nervous") { const sx = cx + 62 * u * (facing || 1), sy = cy - 52 * u; p.poly([[sx, sy - 9 * u], [sx + 4.5 * u, sy + 2 * u], [sx, sy + 6 * u], [sx - 4.5 * u, sy + 2 * u]], "#9fd4ff", 2 * u); }
 };
 
 /** profile face (facing screen-right): one eye, brow, nose tick, mouth near the front edge; no skin bump nose, no ear */
@@ -361,7 +361,7 @@ const faceSide = (p: Pen, hx: number, hy: number, W: number, expr: Expr, lid: nu
   p.stroke([[hx + 44 * u, hy + 4 * u], [hx + 47.5 * u, hy + 9 * u], [hx + 43 * u, hy + 10 * u]], 3 * u);
   mouth(p, F.mouth, hx + 33 * u, hy + 21 * u, u, 0.62);
   if (moustache) taper(p, [hx + 41 * u, hy + 13.5 * u], [hx + 25 * u, hy + (stout ? 11.5 : 16) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
-  if (expr === "nervous") p.ell(hx - 30 * u, hy - 24 * u, 3 * u, 5 * u, "#9fd4ff", 2 * u);
+  if (expr === "nervous") { const sx = hx - 46 * u, sy = hy - 50 * u; p.poly([[sx, sy - 9 * u], [sx + 4.5 * u, sy + 2 * u], [sx, sy + 6 * u], [sx - 4.5 * u, sy + 2 * u]], "#9fd4ff", 2 * u); }
 };
 
 // ---------------- hats ----------------

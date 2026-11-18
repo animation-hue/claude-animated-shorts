@@ -244,7 +244,7 @@ const stander = (out: Stage, cam: CamInfo, t: number, i: number, o: Outfit, okey
 const crewOnDeck = (out: Stage, cam: CamInfo, t: number, sp: ShipPose, ship: Ship, n: number, expr: (i: number) => Expr) => {
   const [ax, az] = shipAxis(sp);
   for (let i = 0; i < n; i++) {
-    const lx = -9 + (i / Math.max(1, n - 1)) * 19 + (hh(i, 3) - 0.5) * 1.5, lz = (hh(i, 4) - 0.5) * 6.2;
+    const lx = -9 + (i / Math.max(1, n - 1)) * 19 + (hh(i, 3) - 0.5) * 1.5, lz = (i % 2 ? 1 : -1) * (1.3 + hh(i, 4) * 2.0); // clear of the masts on the centre line
     const p = onDeck(ship, lx, lz);
     stander(out, cam, t, i, CREW[i % 8], `c${i % 8}`, p.x, p.y, p.z, { expr: expr(i), wave: undefined }, 1, rollOn(cam, sp.heel, ax, az), false);
   }
@@ -337,11 +337,17 @@ const boatKid = (out: Stage, cam: CamInfo, t: number, f: number) => {
 
 // ---- effects ----
 const smokeCloud = (p: Pen, t: number) => {
+  // opaque cut-out puffs (they write depth, so the world ink behind them is hidden), shrinking as they thin out
+  const k = 1 - 0.55 * t * t;
   for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2, d = 50 + 90 * t, r = (70 + 22 * (i % 3)) * (0.7 + 0.5 * t);
-    p.ell(256 + d * Math.cos(a), 256 + d * 0.6 * Math.sin(a), r, r * 0.82, `rgba(244,236,222,${(0.95 * (1 - t * t)).toFixed(3)})`, 0);
+    const a = (i / 7) * Math.PI * 2, d = 50 + 90 * t, r = (70 + 22 * (i % 3)) * (0.7 + 0.5 * t) * k;
+    p.ell(256 + d * Math.cos(a), 256 + d * 0.6 * Math.sin(a), r, r * 0.82, i % 2 ? "#c9c3ba" : "#dcd6cc", 6);
   }
-  if (t < 0.25) p.ell(256, 256, 120 * (1 - t * 3), 90 * (1 - t * 3), "rgba(255,214,120,0.95)", 0);
+  if (t < 0.3) { // muzzle flash: spiky orange star
+    const R = 150 * (1 - t * 2.5), pts: [number, number][] = [];
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, rr2 = i % 2 ? R * 0.42 : R; pts.push([256 + rr2 * Math.cos(a), 256 + rr2 * Math.sin(a)]); }
+    p.poly(pts, "#ff9a2e", 6); p.ell(256, 256, R * 0.3, R * 0.3, "#ffe08a", 0);
+  }
 };
 /** the farewell salute: starboard barrels fire one after another from f1019 */
 const salute = (out: Stage, f: number, ship: Ship) => {
@@ -349,18 +355,26 @@ const salute = (out: Stage, f: number, ship: Ship) => {
     const f0 = 1017 + (PORT_X.length - 1 - i) * 1.2, u = (f - f0) / 26; // bow first: the guns in frame fire on "salute"
     if (u < 0 || u >= 1) return;
     const row = PORT_ROWS[i % 2], m = ship.toWorld(x, row.y, halfB(x, row.y) + 2.4 + 2.2 * u, new THREE.Vector3());
-    out.fx.push({ key: `smoke${q(u, 30)}`, cw: 512, ch: 512, draw: (p) => smokeCloud(p, q(u, 30)), x: m.x, y: m.y, z: m.z, w: 3.2 + 2 * u, h: 3.2 + 2 * u, soft: true });
+    out.fx.push({ key: `smoke${q(u, 30)}`, cw: 512, ch: 512, draw: (p) => smokeCloud(p, q(u, 30)), x: m.x, y: m.y, z: m.z, w: 3.2 + 2 * u, h: 3.2 + 2 * u });
   });
 };
 /** the sea pouring in through the open port-side gun ports as she heels */
 const flooding = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
-  if (sp.heel > -0.3) return;
+  if (sp.heel > -0.3 || sp.sink > 6) return;
   PORT_X.forEach((x, i) => {
     const m = ship.toWorld(x, PORT_ROWS[0].y, -halfB(x, PORT_ROWS[0].y) - 0.3, new THREE.Vector3());
-    if (m.y > 0.9 || m.y < -2) return;
-    const u = q(((f * 0.045 + hh(i, 9)) % 1), 30);
-    out.fx.push({ key: `splash${u}`, cw: 800, ch: 800, draw: (p) => fxSplash(p, u), x: m.x, y: Math.max(0.6, m.y + 0.9), z: m.z - 0.4, w: 3.2, h: 3.2 });
+    if (m.y > 2.6) return;
+    const u = q(((f * 0.06 + hh(i, 9)) % 1), 30);
+    out.fx.push({ key: `splash${u}`, cw: 800, ch: 800, draw: (p) => fxSplash(p, u), x: m.x, y: 1.3, z: m.z - 0.6, w: 3.8, h: 3.8 });
+    out.fx.push({ key: `jet${u}`, cw: 300, ch: 300, draw: (p) => waterJet(p, u), x: m.x, y: Math.max(0.9, m.y + 0.2), z: m.z + 0.4, w: 1.6, h: 1.6, rot: -0.5 });
   });
+};
+/** water spouting INTO a gun port (canvas 300 x 300, flows from the left edge to the hole at the right) */
+const waterJet = (p: Pen, u: number) => {
+  for (let k = 0; k < 4; k++) {
+    const y = 110 + k * 26 + 8 * Math.sin(u * 12 + k);
+    p.stroke([[10, y - 30], [120, y - 10 + 6 * Math.sin(u * 9 + k)], [230, y], [290, y + 6]], 22 - 3 * k, k % 2 ? "#cfe8fa" : "#8cc8f0");
+  }
 };
 /** water streaming off the hull as she is raised (shot 18) */
 const drips = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
@@ -370,6 +384,11 @@ const drips = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
     const u = q(((f * 0.05 + hh(i, 4)) % 1), 30);
     out.fx.push({ key: `splash${u}`, cw: 800, ch: 800, draw: (p) => fxSplash(p, u), x: m.x, y: 0.9, z: Math.max(m.z, COURSE_Z + 3), w: 3.0, h: 3.0 });
   }
+};
+const candle = (p: Pen, fl: number) => {
+  p.poly([[42, 290], [78, 290], [78, 130], [42, 130]], "#f4efe2", 6);
+  p.ell(60, 100 - 6 * fl, 15 + 3 * fl, 32 + 6 * fl, "#ffb43a", 5);
+  p.ell(60, 108, 7, 14, "#fff0b0", 0);
 };
 const capAlone = (p: Pen) => {
   p.ell(100, 120, 70, 44, "#5e4b3a", 8, 180, 360);
@@ -398,7 +417,7 @@ export const stage = (id: number, t: number, f: number, sp: ShipPose, ship: Ship
       break;
     }
     case "builder":
-      stander(out, cam, t, 70, BUILDER, "bld", BUILDER_AT[0], BUILDER_AT[1], BUILDER_AT[2], { expr: id === 3 ? "neutral" : t < 442 / FPS - L ? "neutral" : "nervous", headTilt: id === 6 ? 0.12 * Math.sin(t * 2.4) : 0 });
+      stander(out, cam, t, 70, BUILDER, "bld", BUILDER_AT[0], BUILDER_AT[1], BUILDER_AT[2], { expr: id === 3 ? "neutral" : t < 442 / FPS - L ? "neutral" : "nervous", headTilt: id === 6 ? 0.12 * Math.sin(t * 2.4) : 0, prop: ["hammer", 1] });
       if (id === 3) quayCrowd(out, cam, t, -16, 14, 12, "watch", 1);
       break;
     case "admiral": {
@@ -422,7 +441,9 @@ export const stage = (id: number, t: number, f: number, sp: ShipPose, ship: Ship
       const turn = id === 17 && f >= 1739 - 2;
       [-1.35, 0, 1.35].forEach((dx, k) => stander(out, cam, t, 60 + k, JUDGE(k), `j${k}`, TABLE_AT[0] + dx, D0, TABLE_AT[2] - 0.85,
         { expr: turn ? (k === 1 ? "shock" : "nervous") : "stern", look: turn ? 1 : 0 }, 1, 0, false));
-      out.fx.push({ key: "cap", cw: 220, ch: 160, draw: capAlone, x: STOOL_AT[0], y: D0 + 0.66, z: STOOL_AT[2], w: 0.42, h: 0.3 });
+      out.fx.push({ key: "cap", cw: 220, ch: 160, draw: capAlone, x: STOOL_AT[0] - 0.08, y: D0 + 0.66, z: STOOL_AT[2], w: 0.42, h: 0.3 });
+      const fl = q(0.5 + 0.5 * Math.sin(t * 13), 10);
+      out.fx.push({ key: `candle${fl}`, cw: 120, ch: 300, draw: (p) => candle(p, fl), x: STOOL_AT[0] + 0.2, y: D0 + 0.72, z: STOOL_AT[2] + 0.05, w: 0.12, h: 0.3 });
       if (id === 17) stander(out, cam, t, 80, KING, "king", KING_INQ[0], KING_INQ[1], KING_INQ[2], { expr: f < 1783 ? "neutral" : "smile_closed", facing: -1 });
       break;
     }

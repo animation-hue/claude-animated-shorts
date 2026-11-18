@@ -193,7 +193,8 @@ export class Ship {
     add(deckGeo(), deckM);
     const wood = lam("vasaSpar", () => ({ color: "#7a5434" })), dark = lam("vasaDark", () => ({ color: "#3a2a24" }));
     const gold = twoTone(new THREE.MeshPhongMaterial({ color: "#e2b443", specular: "#fff1b0", shininess: 50 }), 0.2);
-    const bronze = twoTone(new THREE.MeshPhongMaterial({ color: "#9b6a32", specular: "#ffd58a", shininess: 60 }), 0.2);
+    const bronze = twoTone(new THREE.MeshPhongMaterial({ color: "#d39a42", specular: "#fff0b8", shininess: 70 }), 0.2);
+    const bore = lam("vasaBore", () => ({ color: "#120c0c" }));
     // rail cap along both bulwarks
     for (const s of [-1, 1]) {
       const pts: THREE.Vector3[] = [];
@@ -252,7 +253,9 @@ export class Ship {
         lid.rotation.order = "YXZ";
         lid.position.set(x, row.y + row.s * 0.56, s * (w + 0.06)); lid.rotation.y = s > 0 ? 0 : Math.PI;
         lid.castShadow = true; R.add(lid); this.lids.push({ m: lid, row: r, i, s });
-        const gun = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.24, 2.0, 10).rotateX(Math.PI / 2), bronze);
+        const gun = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.24, 2.0, 12).rotateX(Math.PI / 2), bronze);
+        const mz = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.16, 12).rotateX(Math.PI / 2).translate(0, 0, s * 0.95), bronze); gun.add(mz);
+        const hole = new THREE.Mesh(new THREE.CircleGeometry(0.11, 12).translate(0, 0, 0).rotateY(s > 0 ? 0 : Math.PI).translate(0, 0, s * 1.035), bore); gun.add(hole);
         const base = V(x, row.y - 0.05, s * (w - 0.9));
         gun.position.copy(base); gun.castShadow = true; R.add(gun); this.guns.push({ m: gun, row: r, i, s, base });
       }
@@ -292,7 +295,7 @@ export class Ship {
       const a = f.m.geometry.attributes.position as THREE.BufferAttribute, nx = 15;
       for (let i = 0; i < a.count; i++) {
         const u = (i % nx) / (nx - 1), row = Math.floor(i / nx), y = (0.5 - row / 2) * f.h;
-        const amp = 0.12 + 0.35 * p.flag;
+        const amp = 0.1 + 0.16 * p.flag;
         a.setXYZ(i, -u * f.w, y - u * 0.15 * (1 - p.flag) * f.h, amp * u * Math.sin(t * (5 + 4 * p.flag) - u * 5) * f.h);
       }
       a.needsUpdate = true;

@@ -30,17 +30,17 @@ export const SHOTS: ShotDef[] = [
   { id: 2, a: 119, b: 176, light: "day", crowd: "masts", tau: I },       // ...it sank before it left the harbour (flash-forward)
   { id: 3, a: 176, b: 206, light: "day", crowd: "builder", tau: I, sunAz: 120 }, // Stockholm (aerial, ship at the quay)
   { id: 4, a: 206, b: 281, light: "day", crowd: "king", tau: I },        // the king wanted a ship that would terrify
-  { id: 5, a: 281, b: 419, light: "day", crowd: "none", tau: I },        // 64 bronze cannons, two gun decks
+  { id: 5, a: 281, b: 419, light: "day", crowd: "none", tau: I, sunAz: 150, sunEl: 40 },        // 64 bronze cannons, two gun decks
   { id: 6, a: 419, b: 499, light: "day", crowd: "builder", tau: I },     // the shipbuilder had never built one
   { id: 7, a: 499, b: 567, light: "day", crowd: "admiral", tau: I },     // the admiral ordered a test
   { id: 8, a: 567, b: 836, light: "day", crowd: "test", tau: I },        // thirty sailors running
   { id: 9, a: 836, b: 910, light: "day", crowd: "admiral", tau: I },     // "If only His Majesty were at home"
   { id: 10, a: 910, b: 945, light: "day", crowd: "launch", tau: I },     // and launched it anyway
-  { id: 11, a: 945, b: 1034, light: "golden", crowd: "shore", tau: I },  // 10 August, farewell salute
-  { id: 12, a: 1034, b: 1181, light: "golden", crowd: "sail", tau: I },  // 1300 m out, the gust, the sea comes in
+  { id: 11, a: 945, b: 1034, light: "golden", crowd: "shore", tau: I, sunAz: 125, sunEl: 12 },  // 10 August, farewell salute
+  { id: 12, a: 1034, b: 1181, light: "golden", crowd: "sail", tau: I, sunAz: 125, sunEl: 12 },  // 1300 m out, the gust, the sea comes in
   { id: 13, a: 1181, b: 1397, light: "golden", crowd: "masts", tau: I }, // luckily 32 m deep / masts sticking out
   { id: 14, a: 1397, b: 1530, light: "day", crowd: "boat", tau: I },     // stood up in a rowing boat?
-  { id: 15, a: 1530, b: 1628, light: "day", crowd: "none", tau: I },     // all cannon on top
+  { id: 15, a: 1530, b: 1628, light: "day", crowd: "none", tau: I, sunAz: 150, sunEl: 40 },     // all cannon on top
   { id: 16, a: 1628, b: 1735, light: "day", crowd: "inquiry", tau: I },  // the inquiry; the builder had died
   { id: 17, a: 1735, b: 1809, light: "day", crowd: "kingInq", tau: I },  // ...was the king
   { id: 18, a: 1809, b: 1896, light: "day", crowd: "lift", tau: I },     // 333 years later they lifted her out
@@ -69,7 +69,7 @@ export type ShipPose = {
 export const MOOR: V3 = [0, 0, -23.4]; // alongside the near quay (port side to the quay)
 export const COURSE_Z = -8;
 export const SINK_X = 41.5; // where she went down (x along the harbour)
-export const SUNK = 31.5, SUNK_HEEL = -0.3; // settled on the bottom: masts leaning to port
+export const SUNK = 27.5, SUNK_HEEL = -0.3; // settled on the bottom: masts leaning to port
 const shut = () => 0, open = () => 1;
 /** ripple: lids open one after another from stern to bow starting at f0, `gap` frames apart, 6-frame swing */
 const ripple = (f: number, f0: number, gap = 2.2, side = 0) => (i: number, s: number) => (side && s !== side ? 0 : smooth((f - f0 - i * gap) / 6));
@@ -114,7 +114,7 @@ export const shipPose = (id: number, f: number): ShipPose => {
       let heel = -0.04 - 0.4 * smooth((f - 1082) / 26) - 0.25 * smooth((f - 1112) / 24);
       let sink = 0;
       if (f >= 1138) { const s = sinkPose(clamp01((f - 1138) / 105)); heel = Math.min(heel, s.heel); if (f > 1200) heel = s.heel; sink = s.sink; }
-      return { ...base, x, z: COURSE_Z, heel: heel + bob, sink, ports: [open, open], sail: 0.45 + 0.55 * gust, flag: 0.35 + 0.65 * gust };
+      return { ...base, x, z: COURSE_Z, heel: heel + bob, sink, ports: [open, open], sail: sink > 14 ? -1 : 0.45 + 0.55 * gust, flag: 0.35 + 0.65 * gust };
     }
     case 14: case 16: case 17: return { ...base, visible: false };
     case 15: return { ...base, ports: [open, open] };
@@ -203,7 +203,7 @@ const S12b = (f: number) => dolly([X12 + 30, 8.5, 16], [X12 + 1, 13, COURSE_Z], 
 const S12c = (f: number) => dolly([SINK_X + 9, 2.4, -27.2], [SINK_X - 1, 3.6, COURSE_Z - 2], pushK(f, 1133, 0.003, 0.005, 25), { fov: 46, roll: 0.035 });
 // 13 deadpan: low over the water, the quay crowd behind; tilt up to the masts on "Unluckily"
 const S13a = (f: number) => dolly([SINK_X + 6, 2.2, 13], [SINK_X - 1, 2.4, -14], pushK(f, 1181, 0.0018), { fov: 42 });
-const S13b = (f: number) => dolly([SINK_X + 7, 3.4, 15], [SINK_X - 0.5, 7.5, -12], pushK(f, 1258, 0.002, 0.006, 35), { fov: 44, roll: 0.04 });
+const S13b = (f: number) => dolly([SINK_X + 16, 3.4, 19], [SINK_X + 4, 8.0, -12], pushK(f, 1258, 0.002, 0.006, 35), { fov: 48, roll: 0.04 });
 const S13c = (f: number) => dolly([SINK_X + 3, 4.6, 9], [SINK_X + 0.5, 7.0, COURSE_Z], pushK(f, 1310, 0.0025), { fov: 42, roll: -0.03 });
 // 14 the rowing boat
 const S14a = (f: number) => dolly([BOAT_AT[0] + 3.4, 3.6, BOAT_AT[2] + 5.6], [BOAT_AT[0], 0.8, BOAT_AT[2]], pushK(f, 1397, 0.002), { fov: 40 });
@@ -212,8 +212,8 @@ const S14b = (f: number) => dolly([BOAT_AT[0] + 2.6, 2.9, BOAT_AT[2] + 4.3], [BO
 const S15a = (f: number) => dolly([3, 6.2, -8], [0.5, 5.0, -18.3], pushK(f, 1530, 0.0025), { fov: 42 });
 const S15b = (f: number) => dolly([3, 1.3, -9], [0.5, -0.2, -18.3], pushK(f, 1585, 0.0025), { fov: 42, roll: -0.035 });
 // 16 the inquiry table on the quay; the builder's empty stool
-const S16a = (f: number) => dolly([TABLE_AT[0] + 0.8, D0 + 2.1, -26.4], [TABLE_AT[0], D0 + 1.45, TABLE_AT[2]], pushK(f, 1628, 0.0025, 0.005, 30), { fov: 44 });
-const S16b = (f: number) => dolly([STOOL_AT[0] + 0.7, D0 + 1.05, STOOL_AT[2] + 3.2], [STOOL_AT[0], D0 + 0.55, STOOL_AT[2]], pushK(f, 1684, 0.0025), { fov: 40 });
+const S16a = (f: number) => dolly([TABLE_AT[0] + 0.6, D0 + 2.3, -24.6], [TABLE_AT[0], D0 + 1.3, TABLE_AT[2]], pushK(f, 1628, 0.0022, 0.004, 30), { fov: 46 });
+const S16b = (f: number) => dolly([STOOL_AT[0] + 0.5, D0 + 0.95, STOOL_AT[2] + 2.4], [STOOL_AT[0] + 0.05, D0 + 0.68, STOOL_AT[2]], pushK(f, 1684, 0.003), { fov: 38 });
 // 17 the judges turn ("the man who approved the design...") -> the king, pleased with himself
 const S17a = (f: number) => dolly([TABLE_AT[0] + 2.6, D0 + 2.0, -26.8], [TABLE_AT[0] + 1.6, D0 + 1.45, TABLE_AT[2]], pushK(f, 1735, 0.002), { fov: 44 });
 const S17b = (f: number) => dolly([KING_INQ[0] - 0.6, D0 + 1.6, KING_INQ[2] + 3.6], [KING_INQ[0], D0 + 1.95, KING_INQ[2]], pushK(f, 1783, 0.002, 0.006, 25), { fov: 38, roll: 0.04 });
@@ -221,7 +221,7 @@ const S17b = (f: number) => dolly([KING_INQ[0] - 0.6, D0 + 1.6, KING_INQ[2] + 3.
 const S18a = (f: number) => dolly([SINK_X + 24, 7, 22], [SINK_X, 9 - 2 * smooth((f - 1860) / 40), COURSE_Z], pushK(f, 1809, 0.002), { fov: 46 });
 // 19 the visitors on the quay with the ship behind; then the empty deck from the quarterdeck
 const S19a = (f: number) => dolly([3.2, deckH(3) + 3.0, MOOR[2] - 3.2], [1.0, D0 + 1.3, -33.2], pushK(f, 1896, 0.002, 0.005, 30), { fov: 46 });
-const S19b = (f: number) => dolly([-17.5, deckH(-17.5) + 2.2, MOOR[2] + 1.4], [8, deckH(0) + 0.6, MOOR[2] - 0.4], pushK(f, 2003, 0.0025), { fov: 42 });
+const S19b = (f: number) => dolly([-11, deckH(-11) + 1.6, MOOR[2] + 1.6], [10, deckH(0) + 0.2, MOOR[2] - 1.2], pushK(f, 2003, 0.0025), { fov: 42 });
 
 const CAMS: Record<number, Key[]> = {
   1: [{ f: 0, s: S1a }, { f: 52, dur: 30, s: S1b }],                // centred on "mightiest" (64)

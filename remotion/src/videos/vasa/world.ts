@@ -84,7 +84,7 @@ export class World {
   private smoke: { m: THREE.Mesh; mat: THREE.MeshLambertMaterial; top: V3; k: number }[] = [];
   private clouds: THREE.Mesh[] = [];
   private ship: Ship; private boat: RowBoat;
-  private inquiry = new THREE.Group(); private barrier = new THREE.Group();
+  private inquiry = new THREE.Group(); private barrier = new THREE.Group(); private deckBarrier = new THREE.Group();
   private frustum = new THREE.Frustum();
   private m4 = new THREE.Matrix4(); private v = new THREE.Vector3(); private sph = new THREE.Sphere();
 
@@ -163,6 +163,16 @@ export class World {
     const disc = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), new THREE.MeshBasicMaterial({ map: noEntryTex(), alphaTest: 0.5, color: 0xe6e6e6, side: THREE.DoubleSide }));
     disc.position.set(GANGWAY_X, D0 + 0.62, -31.27); disc.layers.set(NOINK); this.barrier.add(disc);
     R.add(this.barrier);
+    // a second barrier on the deck itself, in front of the quarterdeck (the empty-deck shot)
+    const dy = 6.4, dx0 = -5.6, zc = MOOR[2] + 0.3;
+    for (const dz of [-1.3, 1.3]) {
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.0, 10).translate(dx0, dy + 0.5, zc + dz), brass); p.castShadow = true; this.deckBarrier.add(p);
+      this.deckBarrier.add(new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8).translate(dx0, dy + 1.02, zc + dz), brass));
+    }
+    const rope2 = new THREE.QuadraticBezierCurve3(V(dx0, dy + 0.95, zc - 1.3), V(dx0, dy + 0.68, zc), V(dx0, dy + 0.95, zc + 1.3));
+    this.deckBarrier.add(new THREE.Mesh(new THREE.TubeGeometry(rope2, 16, 0.035, 6), red));
+    const disc2 = disc.clone(); disc2.position.set(dx0 + 0.03, dy + 0.62, zc); disc2.rotation.y = -Math.PI / 2; this.deckBarrier.add(disc2);
+    R.add(this.deckBarrier);
 
     // inquiry table + benches on the quay, the builder's empty stool
     const cloth = lam("tableCloth", () => ({ color: "#2f5f6a" })), oak = lam("oakDark", () => ({ color: "#6b4a2e" }));
@@ -205,12 +215,12 @@ export class World {
 
     // chimney smoke (the town's mill + brewery chimneys)
     const smokeT = smokeTex();
-    for (const [top, n] of [[[-22, D0 + 30.6, -77], 7], [[-80, D0 + 24.6, 93], 6]] as const)
+    for (const [top, n] of [] as [V3, number][])
       for (let k = 0; k < n; k++) {
         const mat = new THREE.MeshLambertMaterial({ map: smokeT, transparent: true, depthWrite: false });
         const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
         m.layers.set(NOINK);
-        this.smoke.push({ m, mat, top: top as unknown as V3, k: k / n }); R.add(m);
+        this.smoke.push({ m, mat, top, k: k / n }); R.add(m);
       }
     for (const fg of FOREGROUND) {
       const o = kitClone(kit, fg.kit, fg.s ?? 1);
@@ -268,7 +278,7 @@ export class World {
     const e = K.sky.e.map((deg) => THREE.MathUtils.degToRad(deg));
     su.e.value.set(e[1], e[2], e[3], e[4]);
     this.sky.position.copy(cam.position);
-    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar;
+    untone(L.fog, this.fog.color); this.fog.near = L.fogNear * (id === 3 ? 2 : 1); this.fog.far = L.fogFar * (id === 3 ? 2 : 1);
     scene.fog = this.fog; scene.background = null;
     const showSun = s.light === "golden";
     this.sunDisc.visible = this.sunHalo.visible = showSun;
@@ -293,7 +303,7 @@ export class World {
     this.ship.pose(sp, t);
     this.boat.pose(BOAT_AT[0], BOAT_AT[2], 0.25, boatRoll(f), id === 14);
     this.inquiry.visible = id === 16 || id === 17;
-    this.barrier.visible = id === 19;
+    this.barrier.visible = id === 19; this.deckBarrier.visible = id === 19;
     for (const sm of this.smoke) {
       const u = (t * 0.11 + sm.k) % 1, sz = 3 + u * 9;
       sm.m.position.set(sm.top[0] - u * 18, sm.top[1] + u * 13 + u * u * 4, sm.top[2] + u * 3);

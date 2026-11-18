@@ -645,7 +645,7 @@ export const buildTown = (root: THREE.Object3D, kit: Kit, rays: Ray[] = []) => {
   b.add(tri(V(-58, D0 + 13, -82), V(-58, D0 + 13, -70), V(-58, D0 + 16.5, -76)), millS);
   b.add(tri(V(-28, D0 + 13, -70), V(-28, D0 + 13, -82), V(-28, D0 + 16.5, -76)), millS);
   const chim = lam("chimney", () => ({ map: rep(brick(), 2, 8) })), soot = lam("soot", () => ({ color: "#4a3442" }));
-  for (const [x, z, hh] of [[-22, -77, 30], [-80, 93, 24]] as const) {
+  for (const [x, z, hh] of [] as [number, number, number][]) { // 1628: no factory chimneys
     b.add(new THREE.CylinderGeometry(0.95, 1.35, hh, 14, 1, true), chim, new THREE.Matrix4().makeTranslation(x, D0 + hh / 2, z));
     b.add(new THREE.CylinderGeometry(1.15, 1.1, 1.3, 14), soot, new THREE.Matrix4().makeTranslation(x, D0 + hh + 0.3, z));
   }
