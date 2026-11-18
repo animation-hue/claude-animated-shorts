@@ -63,6 +63,32 @@ export const soldier = (v = 0, extra: Partial<Outfit> = {}): Outfit => {
   return { ...o, ...extra };
 };
 
+// ---- the Vasa cast (Stockholm 1628 + the visitors of today) ----
+export const SAILOR = (v = 0): Outfit => {
+  const shirts = ["#ece6d6", "#3f6fb5", "#b5653f", "#d9cfb6", "#5d7a3a", "#8c3b4a"], caps = ["#c8323a", "#2f5f6a", "#6b5a48", "#3f6fb5"];
+  const o: Outfit = { jacket: shirts[v % 6], pants: v % 2 ? "#5b4a3a" : "#3b3f52", boots: "#4a3426", skin: SKINS[v % 4], belt: v % 3 ? null : "#3a2a24" };
+  if (v % 4 === 1) o.moustache = "#4a3426";
+  return v % 5 === 3 ? { ...o, hat: "hair", hair: ["#5a3b2a", "#2a201a", "#c08a3e"][v % 3] } : { ...o, hat: "cap", cap: caps[v % 4] };
+};
+export const ADMIRAL: Outfit = { jacket: "#2e3550", pants: "#2e3550", boots: "#2a201a", hat: "plume", cap: "#1f1d26", sash: "#e2b443", buttons: "#e8c45a",
+  sword: true, moustache: "#d8d2c8", build: "stout" };
+export const KING: Outfit = { jacket: "#2a4f9a", pants: "#2a2f4a", boots: "#3a2a24", hat: "crown", hair: "#c08a3e", sash: "#e2b443", buttons: "#e8c45a",
+  sword: true, moustache: "#b07a36", build: "stout" };
+export const BUILDER: Outfit = { jacket: "#8a6a48", pants: "#4a3c30", boots: "#3a2a24", hat: "cap", cap: "#5e4b3a", belt: "#3a2a24", skin: "#f5c9a0", moustache: "#5a3b2a" };
+export const JUDGE = (v = 0): Outfit => ({ jacket: "#1f1d26", pants: "#1f1d26", boots: "#1f1d26", hat: "plume", cap: ["#1f1d26", "#3a2f45", "#2e3550"][v % 3],
+  buttons: "#d9dde0", skin: SKINS[(v + 1) % 4], moustache: v % 2 ? "#d8d2c8" : "#4a3426" });
+export const TOURIST = (v = 0): Outfit => {
+  const tops = ["#ef6f5a", "#3fb0c9", "#f2c94c", "#7b5ac9", "#5fbf7a", "#f08a2c", "#e75a9b"];
+  const o: Outfit = { jacket: tops[v % 7], pants: ["#3b5b9a", "#3b3f52", "#c9b48f"][v % 3], boots: ["#f4f1ea", "#2a2a2a", "#c8323a"][v % 3], skin: SKINS[v % 4] };
+  return v % 3 === 1 ? { ...o, hat: "cap", cap: ["#e2453c", "#2f5f6a", "#f4f1ea"][v % 3] } : { ...o, hat: "hair", hair: ["#5a3b2a", "#2a201a", "#c08a3e", "#a33a2a"][v % 4] };
+};
+/** Stockholm crowd, 1628: men in plumed brims, women in bonnets */
+export const folk1628 = (v = 0): Outfit => {
+  const coats = ["#3f6fb5", "#8c3b4a", "#5d7a3a", "#b5653f", "#2f5f6a", "#7b5ac9"];
+  const o: Outfit = { jacket: coats[v % 6], pants: "#3b3f52", boots: "#4a3426", skin: SKINS[v % 4] };
+  return v % 2 ? { ...o, hat: "bonnet", dress: ["#d9a441", "#c25a7a", "#5a8fc2"][v % 3] } : { ...o, hat: "plume", cap: ["#2e2a36", "#5a3b2a", "#3a4a2a"][v % 3] };
+};
+
 export const townsfolk = (v = 0): Outfit => {
   const coats = ["#3f6fb5", "#8c3b4a", "#5d7a3a", "#b5653f", "#2f5f6a", "#7b5ac9"];
   const o: Outfit = { jacket: coats[v % 6], pants: "#3b3f52", boots: "#4a3426", skin: SKINS[v % 4] };
@@ -412,6 +438,30 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
     p.poly(body, null, ow);
     const [bx, by] = R([[cx, yb + 1 * u]])[0];
     p.ell(bx, by, 0.45 * W, 0.05 * HH, "#1d1b22", ow, 0, 360, (a * 180) / Math.PI);
+  } else if (o.hat === "plume") {
+    // 1620s wide-brimmed felt hat with a low round crown, a band and a curling feather (colour: o.cap)
+    const col = o.cap ?? "#2e2a36", yb = crown + 0.2 * HH, ht = 0.42 * HH, wb = 0.36 * W, wt = 0.3 * W;
+    const body: P2[] = R([...sag(yb, wb).reverse(), [cx - wt, yb - ht * 0.8], [cx - wt * 0.7, yb - ht], [cx + wt * 0.7, yb - ht], [cx + wt, yb - ht * 0.8]]);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, wt, 0.4);
+    p.clip(body, () => p.band(R([[cx - wt - 4 * u, yb - 0.1 * HH], [cx + wt + 4 * u, yb - 0.1 * HH]]), "#e2b443", 0.07 * HH, 0.8 * u));
+    p.poly(body, null, ow);
+    const [bx, by] = R([[cx + (side ? 8 * u : 0), yb + 1 * u]])[0];
+    p.ell(bx, by, (side ? 0.62 : 0.68) * W, 0.07 * HH, shade(col, 0.85), ow, 0, 360, (a * 180) / Math.PI);
+    const fs = side ? -1 : facing || 1, f0 = R([[cx + fs * wt * 0.6, yb - ht * 0.7]])[0];
+    const plume = curve(f0, R([[cx + fs * wt * 1.3, yb - ht * 1.6]])[0], R([[cx - fs * wt * 0.2, yb - ht * 1.9]])[0], 12);
+    p.stroke(plume, 9 * u, INK); p.stroke(plume, 6 * u, o.dress && o.hat === "plume" ? "#f4f0e6" : "#f4f0e6");
+  } else if (o.hat === "crown") {
+    // gold crown with five points and three jewels sitting on short hair
+    const hairCol = o.hair ?? "#c08a3e", yb = crown + 0.2 * HH;
+    const hair: P2[] = R([...sag(yb + 0.05 * HH, 0.5 * W).reverse(), [cx - 0.5 * W, yb - 0.02 * HH], [cx, yb - 0.14 * HH], [cx + 0.5 * W, yb - 0.02 * HH]]);
+    p.shadedFill(hair, hairCol, mul(hairCol, SH_FELT), light, 0.5 * W, 0.35); p.poly(hair, null, ow * 0.8);
+    const w = 0.36 * W, ht = 0.3 * HH, pts: P2[] = [[cx - w, yb + 0.02 * HH]];
+    for (let k = 0; k <= 4; k++) { const x = cx - w + (k * 2 * w) / 4; pts.push([x, yb - ht]); if (k < 4) pts.push([x + w / 4, yb - ht * 0.45]); }
+    pts.push([cx + w, yb + 0.02 * HH]);
+    const body = R(pts);
+    p.shadedFill(body, "#f2c94c", "#c99a2a", light, w, 0.4);
+    p.poly(body, null, ow);
+    for (const [dx, c] of [[-0.5, "#c8323a"], [0, "#2a62ad"], [0.5, "#2f8a4f"]] as const) { const [jx, jy] = R([[cx + dx * w, yb - 0.09 * HH]])[0]; p.ell(jx, jy, 5 * u, 5 * u, c, 1.6 * u); }
   } else if (o.hat === "bonnet") {
     const [bx, by] = R([[cx + (side ? 6 * u : 0), crown + 0.16 * HH]])[0];
     p.arc(bx, by, 0.5 * W, 0.2 * HH, 200, 340, 7 * u, BONNET_BRIM);
@@ -599,7 +649,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown";
   faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout");
   p.rot = null;
 };
@@ -722,7 +772,7 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, hx, hc, light, seed, 1, true);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown";
   faceSide(p, hx, hc, W, expr, lid, brim, skin, o.moustache, o.build === "stout");
   p.rot = null;
 };
