@@ -24,7 +24,7 @@ const inTheWay = (x0: number, x1: number, y0: number, y1: number, z0: number, z1
 
 // ---------------- painted textures ----------------
 const asphalt = () => ctex("rkAsphalt", 1024, 1024, (g, r) => {
-  g.fillStyle = "#5b5a62"; g.fillRect(0, 0, 1024, 1024);
+  g.fillStyle = "#77716a"; g.fillRect(0, 0, 1024, 1024);
   for (let i = 0; i < 900; i++) { g.fillStyle = r() < 0.5 ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.07)"; g.fillRect(r() * 1024, r() * 1024, 2 + r() * 5, 2 + r() * 5); }
   g.fillStyle = "rgba(30,28,36,0.25)"; for (let i = 0; i < 6; i++) { g.beginPath(); g.ellipse(r() * 1024, r() * 1024, 60 + r() * 90, 20 + r() * 30, r() * 3, 0, 7); g.fill(); }
 });
@@ -148,7 +148,7 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
     x += w + (r() < 0.25 ? 3 : 0.4);
   }
   // palms on the promenade, between the lamps
-  for (let x = XA + 12; x < XB; x += 24) palm(b, x + r() * 3, -32.3, 7 + r() * 2.5, x * 0.37);
+  for (let x = XA + 12; x < XB; x += 24) { const px = x + r() * 3; if (px > 10 && px < 50) continue; palm(b, px, -32.3, 7 + r() * 2.5, x * 0.37); } // keep the ending's frame clear
   // lamp posts: promenade (the necklace) + median; heads are separate emissive meshes
   const pole = lam("rkPole", () => ({ color: "#4a4f5a" }));
   const headMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.95, 0.85) });
@@ -163,7 +163,7 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
   };
   for (let x = XA + 6; x < XB; x += 24) addLamp(x, -33.4, 1);
   const crashPost = new THREE.Group();
-  for (let x = XA + 12; x < XB; x += 18) { if (Math.abs(x - CRASH[0]) < 4) continue; addLamp(x, MEDIAN, -1); }
+  for (let x = XA + 12; x < XB; x += 18) { if (Math.abs(x - CRASH[0]) < 4 || Math.abs(x - 30) < 16) continue; addLamp(x, MEDIAN, -1); } // none in the ending's frame
   addLamp(CRASH[0], CRASH[2], -1, crashPost); root.add(crashPost);
   // the signal: pole on the city footpath? (eastbound faces +x): pole on the median at the stop line, arm over the eastbound lanes
   const sigPole = lam("rkSig", () => ({ color: "#2c3038" }));

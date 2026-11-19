@@ -35,7 +35,7 @@ export type Mood = "morning" | "noon" | "haze" | "warm" | "garage" | "garageGold
 export type ShotDef = { id: number; a: number; b: number; light: Light; mood: Mood; crowd: string; tau: (t: number) => number; sunAz?: number; sunEl?: number };
 const I = (t: number) => t;
 export const SHOTS: ShotDef[] = [
-  { id: 1, a: 0, b: 108, light: "day", mood: "morning", crowd: "signal", tau: I },        // 9:30, red light on Marine Drive
+  { id: 1, a: 0, b: 108, light: "day", mood: "morning", crowd: "signal", tau: I, sunAz: 140 },        // 9:30, red light on Marine Drive
   { id: 2, a: 108, b: 205, light: "day", mood: "morning", crowd: "signal", tau: I },      // Badshah ... fell in love
   { id: 3, a: 205, b: 311, light: "day", mood: "morning", crowd: "signal", tau: I },      // her name was Bijli
   { id: 4, a: 311, b: 418, light: "day", mood: "morning", crowd: "signal", tau: I },      // headlights wide, skipped a beat
@@ -52,7 +52,7 @@ export const SHOTS: ShotDef[] = [
   { id: 15, a: 1772, b: 1963, light: "golden", mood: "garageGold", crowd: "magic", tau: I }, // the door glows: Bijli
   { id: 16, a: 1963, b: 2034, light: "golden", mood: "garageGold", crowd: "flower", tau: I }, // jasmine on his mirror
   { id: 17, a: 2034, b: 2209, light: "golden", mood: "garageGold", crowd: "flicker", tau: I }, // once, softly / she flickered back
-  { id: 18, a: 2209, b: TOTAL, light: "golden", mood: "golden", crowd: "together", tau: I }, // golden evening, slowly
+  { id: 18, a: 2209, b: TOTAL, light: "golden", mood: "golden", crowd: "together", tau: I, sunAz: 8, sunEl: 6 }, // golden evening, slowly
 ];
 export const XFADE: Record<number, number> = { 10: 10, 11: 12, 12: 12, 14: 10, 18: 12 };
 export const FLASH_AT = -100; // no white flash in this film
@@ -151,7 +151,7 @@ export const bijliAt = (id: number, f: number): AutoPos | null => {
 const H = D0; // road level
 const B = (id: number, f: number) => badshahAt(id, f);
 // 1: high over the promenade, the red light and the waiting autos, the art-deco front behind
-const S1a = (f: number) => dolly([20, 17, -16], [-6, H + 2.5, -42], pushK(f, 0, 0.0025), { fov: 44 });
+const S1a = (f: number) => dolly([-14, 21, -66], [6, H - 1.5, -22], pushK(f, 0, 0.0025), { fov: 46 }); // from inland, over the road to the sea
 // 2: Badshah at the light (front), push on "fell in love"
 const S2a = (f: number) => dolly([3.0, H + 1.25, ZB + 0.6], [BX0, H + 0.95, ZB], pushK(f, 108, 0.002, 0.006, 30), { fov: 40 });
 // 3: Bijli rolls up in the sea lane; push to her jasmine
@@ -160,10 +160,10 @@ const S3b = (f: number) => dolly([0.3, H + 1.55, ZJ - 0.9], [BX0 - 0.3, H + 1.42
 // 4: Badshah close-up: wide eyes, the skipped beat
 const S4a = (f: number) => dolly([0.2, H + 1.0, ZB + 0.25], [BX0, H + 0.82, ZB], pushK(f, 311, 0.002, 0.007, 28), { fov: 36 });
 // 5: the signal turns green (insert) -> she glides away (from the promenade)
-const S5a = (f: number) => dolly([3.5, H + 4.6, -36.5], [0.4, H + 5.4, -38.8], pushK(f, 418, 0.003), { fov: 34 });
-const S5b = (f: number) => dolly([4.5, H + 1.6, -31.4], [5.5, H + 0.9, -38], pushK(f, 440, 0.0018), { fov: 46 });
+const S5a = (f: number) => dolly([-3.2, H + 4.7, -37.4], [0.3, H + 5.35, -38.75], pushK(f, 418, 0.003), { fov: 34 });
+const S5b = (f: number) => dolly([1.0, H + 1.6, -31.2], [-1.0, H + 0.9, -38], pushK(f, 440, 0.0018), { fov: 46 });
 // 6: Natraj behind the windscreen pulls his goggles down
-const S6a = (f: number) => dolly([-0.6, H + 1.6, ZB + 0.15], [BX0, H + 1.45, ZB], pushK(f, 487, 0.0025, 0.006, 25), { fov: 32, roll: -0.03 });
+const S6a = (f: number) => dolly([-0.9, H + 1.12, ZB + 0.15], [BX0, H + 1.05, ZB], pushK(f, 487, 0.0025, 0.006, 25), { fov: 32, roll: -0.03 });
 // 7: chase, tracking alongside from the promenade; whip on "corner"
 const S7a = (f: number) => { const b = B(7, f); return { pos: [b.x + 2.2, H + 1.7, -31.2] as V3, look: [b.x + 0.4, H + 0.9, b.z] as V3, fov: 46, roll: 0.03 }; };
 const S7b = (f: number) => { const b = B(7, f); return { pos: [b.x + 9, H + 1.2, LANE.e2 + 0.5] as V3, look: [b.x, H + 0.9, b.z] as V3, fov: 40, roll: -0.04 }; };
@@ -184,27 +184,28 @@ const S11b = (f: number) => dolly([194.2, H + 1.0, ZB + 0.3], [190, H + 0.85, ZB
 // 12: 5:20 warm: driving slowly back along Marine Drive; jasmine; there she was (across the road)
 const S12a = (f: number) => { const b = B(12, f); return dolly([b.x - 7, H + 2.4, LANE.w2 - 1.5], [b.x, H + 1.0, b.z], pushK(f, 1134, 0.002), { fov: 44 }); };
 const S12b = (f: number) => { const b = B(12, f); return dolly([b.x - 4.2, H + 1.15, b.z + 0.3], [b.x, H + 0.95, b.z], pushK(f, 1231, 0.0025), { fov: 38 }); };
-const S12c = (f: number) => { const b = B(12, f); return dolly([b.x + 1.6, H + 1.7, b.z - 1.4], [68, H + 0.9, LANE.sea], pushK(f, 1256, 0.0015, 0.005, 35), { fov: 30 }); };
+const S12c = (f: number) => { const b = B(12, f); return dolly([b.x + 1.6, H + 1.7, b.z - 1.4], [68, H + 0.9, LANE.sea], pushK(f, 1256, 0.0015, 0.005, 35), { fov: 20 }); };
 // 13: heart eyes (close) -> across the road -> BOING
 const S13a = (f: number) => { const b = B(13, f); return dolly([b.x - 3.4, H + 1.0, b.z + 0.2], [b.x, H + 0.85, b.z], pushK(f, 1312, 0.002, 0.006, 30), { fov: 36 }); };
-const S13b = (f: number) => dolly([CRASH[0] - 7.5, H + 1.8, -36.6], [CRASH[0] + 2, H + 1.2, -42.5], pushK(f, 1409, 0.002), { fov: 46 });
+const S13b = (f: number) => dolly([CRASH[0] - 4.0, H + 1.6, -34.6], [CRASH[0] + 4.0, H + 1.0, -42.4], pushK(f, 1409, 0.002), { fov: 48 });
 // 14: the garage: from the door looking in; Happy Singh laughing; Badshah still
 const G = GARAGE;
-export const HAPPY_AT: V3 = [G[0] + 1.9, D0, G[2] - 0.6];
-const S14a = (f: number) => dolly([G[0] + 1.2, H + 1.6, G[2] + 5.6], [G[0] + 0.4, H + 1.1, G[2] - 1.5], pushK(f, 1468, 0.002), { fov: 44 });
+export const HAPPY_AT: V3 = [G[0] + 1.6, D0, G[2] - 0.4];
+const S14a = (f: number) => dolly([G[0] + 1.0, H + 1.5, G[2] + 5.2], [G[0] + 0.95, H + 1.05, G[2] - 1.2], pushK(f, 1468, 0.002), { fov: 46 });
 const S14b = (f: number) => dolly([HAPPY_AT[0] - 0.4, H + 1.7, HAPPY_AT[2] + 3.4], [HAPPY_AT[0], H + 1.75, HAPPY_AT[2]], pushK(f, 1620, 0.0025, 0.006, 25), { fov: 40 });
 const S14c = (f: number) => dolly([G[0] - 0.2, H + 1.05, G[2] + 2.6], [G[0], H + 0.9, G[2] - 1.2], pushK(f, 1688, 0.0025), { fov: 36 });
 // 15: inside, looking out at the door: gold light, the honk, Bijli in the doorway
-const S15a = (f: number) => dolly([G[0] - 3.3, H + 1.45, G[2] - 4.3], [G[0] + 0.3, H + 1.25, G[2] + 4.6], pushK(f, 1772, 0.0015), { fov: 46 });
+const S15a = (f: number) => dolly([G[0] - 2.4, H + 1.35, G[2] - 4.6], [G[0] + 1.0, H + 1.05, G[2] + 4.0], pushK(f, 1772, 0.0015), { fov: 46 });
 const S15b = (f: number) => dolly([G[0] - 1.6, H + 1.2, G[2] - 2.0], [G[0] + 0.4, H + 1.05, G[2] + 4.2], pushK(f, 1886, 0.0018, 0.005, 35), { fov: 40, roll: 0.025 });
 // 16: the jasmine flower on his mirror
-const S16a = (f: number) => dolly([G[0] + 0.45, H + 1.7, G[2] + 1.2], [G[0] + 0.6, H + 1.55, G[2] - 1.2], pushK(f, 1963, 0.003), { fov: 32 });
+const S16a = (f: number) => dolly([G[0] + 0.55, H + 1.2, G[2] + 0.4], [G[0] + 0.62, H + 1.12, G[2] - 1.2], pushK(f, 1963, 0.003), { fov: 34 });
 // 17: his one good headlight; hers back
 const S17a = (f: number) => dolly([G[0] + 0.1, H + 1.05, G[2] + 2.2], [G[0], H + 0.85, G[2] - 1.2], pushK(f, 2034, 0.0016), { fov: 34 });
 const S17b = (f: number) => dolly([G[0] + 0.3, H + 1.05, G[2] + 0.9], [G[0] + 0.4, H + 0.85, G[2] + 4.1], pushK(f, 2168, 0.0018), { fov: 34, roll: -0.02 });
 // 18: golden evening on Marine Drive: low beside the two autos, crane up and out over the sea wall
-const S18a = (f: number) => { const b = B(18, f); return { pos: [b.x + 6, H + 1.2, -32.6] as V3, look: [b.x, H + 0.9, -37.2] as V3, fov: 42, roll: 0 }; };
-const S18b = (f: number): Shot => { const b = B(18, f), u = glide((f - 2262) / 78); return { pos: [b.x + 6 + 14 * u, H + 1.2 + 15 * u, -32.6 + 12 * u], look: [b.x + 2 * u, H + 0.9 - 0.4 * u, -37.2 + 2 * u], fov: 42 + 6 * u, roll: 0 }; };
+// (from the city side looking out to sea: the two autos cross the frame in side view, the sun setting over the water)
+const S18a = (f: number) => { const b = B(18, f); return { pos: [b.x + 1.0, H + 1.3, -45.6] as V3, look: [b.x + 1.2, H + 1.0, -30] as V3, fov: 42, roll: 0 }; };
+const S18b = (f: number): Shot => { const b = B(18, f), u = glide((f - 2262) / 78); return { pos: [b.x + 1.0 - 6 * u, H + 1.3 + 13 * u, -45.6 - 9 * u], look: [b.x + 1.2 + 2 * u, H + 1.0 - 1.5 * u, -30 + 12 * u], fov: 42 + 6 * u, roll: 0 }; };
 
 const CAMS: Record<number, Key[]> = {
   1: [{ f: 0, s: S1a }],

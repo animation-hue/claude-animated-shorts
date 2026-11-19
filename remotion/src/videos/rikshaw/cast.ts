@@ -243,20 +243,18 @@ const auto = (out: Stage, cam: CamInfo, t: number, name: string, look: AutoLook,
 };
 /** world position of a front card's right / left headlight (canvas x 364 / 236, y 532) as seen from the lens */
 const headlightPos = (cam: CamInfo, p: AutoPos, side: number): V3 => {
-  const dx = (side > 0 ? 64 : -64) * SUA, dy = (780 - 532) * SUA;
-  const toCam = tmp.set(cam.pos.x - p.x, 0, cam.pos.z - p.z).normalize();
-  const rx = toCam.z, rz = -toCam.x; // card right as seen from the lens
-  return [p.x - rx * dx, D0 + dy, p.z - rz * dx + 0.0];
+  const dx = (side > 0 ? 64 : -64) * SUA, dy = (780 - 532) * SUA; // canvas +x = screen right on a front card
+  return [p.x + cam.right.x * dx, D0 + dy, p.z + cam.right.z * dx];
 };
 const glowCard = (p: Pen) => {
   const g = p.g, gr = g.createRadialGradient(128, 128, 4, 128, 128, 128);
   gr.addColorStop(0, "rgba(255,248,215,1)"); gr.addColorStop(0.3, "rgba(255,226,140,0.75)"); gr.addColorStop(1, "rgba(255,200,90,0)");
   g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
 };
-const glow = (out: Stage, cam: CamInfo, at: V3, k: number, size = 0.9) => {
+const glow = (out: Stage, cam: CamInfo, at: V3, k: number, size = 0.34) => {
   if (k < 0.02) return;
   const to = tmp.set(cam.pos.x - at[0], cam.pos.y - at[1], cam.pos.z - at[2]).normalize();
-  out.fx.push({ key: "glow", cw: 256, ch: 256, draw: glowCard, x: at[0] + to.x * 0.15, y: at[1] + to.y * 0.15, z: at[2] + to.z * 0.15, w: size * (0.6 + 0.6 * k), h: size * (0.6 + 0.6 * k), soft: true, glow: 2.5 * k });
+  out.fx.push({ key: "glow", cw: 256, ch: 256, draw: glowCard, x: at[0] + to.x * 0.12, y: at[1] + to.y * 0.12, z: at[2] + to.z * 0.12, w: size * (0.5 + 0.5 * k), h: size * (0.5 + 0.5 * k), soft: true, glow: 1.6 * k });
 };
 const puff = (out: Stage, at: V3, u: number) => {
   if (u < 0 || u >= 1) return;
