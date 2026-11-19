@@ -17,6 +17,7 @@ export type Build = "adult" | "stout" | "kid";
 export type Outfit = {
   jacket: string; pants: string; boots: string; hat?: string | null; belt?: string | null; buttons?: string; rifle?: boolean;
   sash?: string; sword?: boolean; moustache?: string; skin?: string; head?: number; cap?: string; hair?: string; dress?: string;
+  beard?: string; goggles?: "up" | "down"; toothpick?: boolean;
   build?: Build;
 };
 type P2 = [number, number];
@@ -62,6 +63,13 @@ export const soldier = (v = 0, extra: Partial<Outfit> = {}): Outfit => {
   if (v % 4 === 3) o.moustache = "#2a201a";
   return { ...o, ...extra };
 };
+
+// ---- the Rikshaw Love people ----
+export const NATRAJ = (g: "up" | "down" = "up"): Outfit => ({ jacket: "#e9e4d8", pants: "#3b3f52", boots: "#2a201a", hat: "hair", hair: "#1f1a1a", skin: "#d9a77e",
+  moustache: "#1f1a1a", goggles: g, toothpick: true });
+export const HAPPY_SINGH: Outfit = { jacket: "#3f6fb5", pants: "#3b3f52", boots: "#2a201a", hat: "turban", cap: "#f29a2e", skin: "#e8b48f",
+  beard: "#2a201a", moustache: "#2a201a", build: "stout", belt: "#5a3b2a" };
+export const UMBRELLA_LADY: Outfit = { jacket: "#7b5ac9", pants: "#3b3f52", boots: "#4a3426", hat: "hair", hair: "#2a201a", dress: "#5a8fc2", skin: "#c99067" };
 
 // ---- the Vasa cast (Stockholm 1628 + the visitors of today) ----
 export const SAILOR = (v = 0): Outfit => {
@@ -332,7 +340,7 @@ const mouth = (p: Pen, kind: MouthK, mx: number, my: number, u: number, k = 1) =
 /** face v2 (front / 3-4). u = 1 % of the head path width W. Eyes 26u apart on the centre line, brows 20u up, mouth 20u
  *  down, everything slid toward the facing side. No blush, no catchlights. */
 const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing: number, look: number, lid: number, brim: boolean,
-  skin: string, moustache?: string, stout = false) => {
+  skin: string, moustache?: string, stout = false, beardCol?: string) => {
   const u = W / 100, F = FACE[expr], fx = cx + 7 * u * facing;
   const ex = (F.eye[0] === "shock" ? 12 : 13) * u, ey = cy;
   for (const side of [-1, 1]) {
@@ -344,6 +352,13 @@ const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing
     else taper(p, [x - side * 8.5 * u, by + dI * u], [x + side * 8.5 * u, by + dO * u], 5 * u, 2.5 * u);
   }
   const mx = cx + 8 * u * facing, my = cy + 20 * u;
+  if (beardCol) { // full beard around the jaw (drawn under the mouth)
+    const bp: P2[] = [];
+    for (let i = 0; i <= 16; i++) { const a = Math.PI * (0.05 + 0.9 * i / 16); bp.push([cx + 7 * u * facing + 40 * u * Math.cos(a), cy + 6 * u + 40 * u * Math.sin(a) * 1.05]); }
+    bp.push([cx + 7 * u * facing - 26 * u, cy + 14 * u], [cx + 7 * u * facing + 26 * u, cy + 14 * u]);
+    p.poly(bp, beardCol, 4 * u);
+    p.ell(mx, my + 1 * u, 13 * u, 9 * u, mix(beardCol, "#ffffff", 0.08), 0);
+  }
   mouth(p, F.mouth, mx, my, u);
   if (moustache) for (const s of [-1, 1])
     taper(p, [mx + s * 1.5 * u, cy + 12.5 * u], [mx + s * (stout ? 19 : 15) * u, cy + (stout ? 10.5 : 15) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
@@ -457,6 +472,16 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
       left.push([x - (dy / l) * w, y + (dx / l) * w]); right.push([x + (dy / l) * w, y - (dx / l) * w]);
     });
     p.poly([...left, ...right.reverse()], "#f4f0e6", ow * 0.7);
+  } else if (o.hat === "turban") {
+    // wrapped turban (colour o.cap): a rounded dome over the crown with layered folds and a peak at the front
+    const col = o.cap ?? "#e2453c", yb = crown + 0.3 * HH, w = 0.56 * W, ht = 0.52 * HH;
+    const dome: P2[] = [];
+    for (let i = 0; i <= 18; i++) { const t = i / 18, a = Math.PI * t; dome.push([cx - w * Math.cos(a), yb - ht * Math.sin(a) * (1 + 0.12 * Math.sin(a * 2))]); }
+    const body = R(dome);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, w, 0.35);
+    p.poly(body, null, ow);
+    for (let k = 0; k < 3; k++) { const y0 = yb - (0.12 + 0.13 * k) * HH; p.stroke(R([[cx - w * (0.95 - 0.12 * k), y0 + 6 * u], [cx, y0 - 10 * u], [cx + w * (0.95 - 0.12 * k), y0 + 6 * u]]), 1.8 * u); }
+    if (!side) p.stroke(R([[cx - 10 * u, yb - 0.05 * HH], [cx, yb - 0.4 * HH], [cx + 10 * u, yb - 0.05 * HH]]), 2.2 * u);
   } else if (o.hat === "crown") {
     // gold crown with five points and three jewels sitting on short hair
     const hairCol = o.hair ?? "#c08a3e", yb = crown + 0.2 * HH;
@@ -476,6 +501,17 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
     const cy = hc + H.b * 0.98;
     p.stroke([[cx - 14 * u, cy - 4 * u], [cx, cy + 2 * u], [cx + 14 * u, cy - 4 * u]], 2 * u, BONNET_BRIM);
   }
+};
+
+/** Natraj's goggles (up on the forehead or down over the eyes) and toothpick */
+const extras = (p: Pen, o: Outfit, cx: number, cy: number, W: number, side: boolean) => {
+  const u = W / 100;
+  if (o.goggles) {
+    const gy = o.goggles === "down" ? cy - 1 * u : cy - 30 * u;
+    p.stroke([[cx - 48 * u, gy], [cx + 48 * u, gy]], 4 * u, "#3a2a24");
+    for (const k of side ? [1] : [-1, 1]) p.ell(cx + k * 14 * u + (side ? 6 * u : 0), gy, 12 * u, 10 * u, o.goggles === "down" ? "#34465a" : "#5d7286", 3 * u);
+  }
+  if (o.toothpick) p.stroke([[cx + (side ? 14 : 10) * u, cy + 21 * u], [cx + (side ? 36 : 30) * u, cy + 13 * u]], 2.6 * u, "#d9b37a");
 };
 
 // ---------------- bodies ----------------
@@ -656,8 +692,9 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown";
-  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout");
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown" && o.hat !== "turban";
+  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", o.beard);
+  extras(p, o, 300 + 7 * (W / 100) * facing, hc, W, false);
   p.rot = null;
 };
 
@@ -779,8 +816,9 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, hx, hc, light, seed, 1, true);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown" && o.hat !== "turban";
   faceSide(p, hx, hc, W, expr, lid, brim, skin, o.moustache, o.build === "stout");
+  extras(p, o, hx + 22 * (W / 100), hc, W, true);
   p.rot = null;
 };
 

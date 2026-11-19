@@ -1,0 +1,27 @@
+import { Pen, bodyFront, NATRAJ, HAPPY_SINGH } from "../src/videos/rikshaw/toon";
+import { autoFront, autoSide, BADSHAH, BIJLI, GRANDMA, PLAIN, AutoState } from "../src/videos/rikshaw/autos";
+const add = (w: number, h: number, label: string, draw: (p: Pen) => void, k = 0.5) => {
+  const d = document.createElement("div"); d.style.cssText = "display:inline-block;margin:6px;background:#9fc4e6;font:12px sans-serif";
+  const c = document.createElement("canvas"); c.width = w * k; c.height = h * k; const g = c.getContext("2d")!; g.scale(k, k); draw(new Pen(g));
+  d.appendChild(c); const t = document.createElement("div"); t.textContent = label; d.appendChild(t); document.body.appendChild(d);
+};
+const F = (o: any, s: AutoState, l: string) => add(600, 800, l, (p) => autoFront(p, o, s));
+const S = (o: any, s: AutoState, l: string) => add(900, 700, l, (p) => autoSide(p, o, s));
+F(BADSHAH, { eye: "open", mouth: "smile" }, "Badshah open/smile");
+F(BADSHAH, { eye: "wide", mouth: "o", shiver: 6 }, "Badshah wide/o");
+F(BADSHAH, { eye: "heart", mouth: "grin" }, "Badshah heart");
+F(BADSHAH, { eye: "droop", mouth: "frown" }, "Badshah droop");
+F(BADSHAH, { eye: "dazed", mouth: "wobble", tilt: 0.12 }, "Badshah dazed");
+F(BADSHAH, { eye: "soft", mouth: "shy", tape: true, flower: true, glow: [0, 1] }, "Badshah taped/flower/glow");
+F(BADSHAH, { eye: "squint", mouth: "grit", goggles: "down", toothpick: 0.6 }, "Badshah chase");
+F(BIJLI, { eye: "soft", mouth: "smile" }, "Bijli soft/smile");
+F(BIJLI, { eye: "open", mouth: "shy", look: 0.6, glow: [1, 1] }, "Bijli glance/glow");
+F(GRANDMA, { eye: "squint", mouth: "smile" }, "Grandma");
+F(PLAIN(1), { eye: "open", mouth: "flat" }, "Plain auto");
+S(BADSHAH, { eye: "squint", mouth: "grit", goggles: "down", toothpick: 0.6 }, "Badshah side chase");
+S(BIJLI, { eye: "soft", mouth: "smile" }, "Bijli side");
+S(PLAIN(0), { eye: "open", mouth: "flat" }, "Plain side");
+add(600, 1000, "Natraj goggles up", (p) => bodyFront(p, NATRAJ("up"), { mode: "stand", expr: "grin" }));
+add(600, 1000, "Natraj goggles down", (p) => bodyFront(p, NATRAJ("down"), { mode: "stand", expr: "stern" }));
+add(600, 1000, "Happy Singh laugh", (p) => bodyFront(p, HAPPY_SINGH, { mode: "stand", expr: "laugh", prop: ["hammer", 1] }));
+(window as any).done = true;
