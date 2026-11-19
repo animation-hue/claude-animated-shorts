@@ -52,6 +52,21 @@ const concrete = () => ctex("rkConcrete", 512, 512, (g, r) => {
   for (let i = 0; i < 10; i++) { g.fillStyle = "rgba(30,26,30,0.18)"; g.beginPath(); g.ellipse(r() * 512, r() * 512, 30 + r() * 60, 12 + r() * 30, r() * 3, 0, 7); g.fill(); }
 });
 
+/** the street seen through the garage door at sunset: amber sky, a low sun, palm and building silhouettes */
+const sunsetStreet = () => ctex("rkSunsetStreet", 1024, 512, (g) => {
+  const gr = g.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0, "#f2a35e"); gr.addColorStop(0.55, "#ffd58c"); gr.addColorStop(0.62, "#ffe9b8"); gr.addColorStop(1, "#c9874e");
+  g.fillStyle = gr; g.fillRect(0, 0, 1024, 512);
+  const sg = g.createRadialGradient(560, 300, 10, 560, 300, 260); sg.addColorStop(0, "rgba(255,250,225,1)"); sg.addColorStop(0.25, "rgba(255,236,170,0.8)"); sg.addColorStop(1, "rgba(255,210,140,0)");
+  g.fillStyle = sg; g.fillRect(0, 0, 1024, 512);
+  g.fillStyle = "rgba(120,70,60,0.55)";
+  for (const [x, w, h] of [[0, 160, 170], [170, 120, 120], [760, 140, 150], [910, 114, 200]]) g.fillRect(x, 330 - h, w, h + 40);
+  g.strokeStyle = "rgba(110,60,50,0.6)"; g.lineWidth = 10;
+  for (const px of [300, 840]) { g.beginPath(); g.moveTo(px, 360); g.quadraticCurveTo(px + 12, 260, px + 6, 190); g.stroke();
+    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; g.beginPath(); g.moveTo(px + 6, 190); g.quadraticCurveTo(px + 6 + 50 * Math.cos(a), 170 + 20 * Math.sin(a), px + 6 + 80 * Math.cos(a), 205 + 30 * Math.abs(Math.sin(a))); g.stroke(); } }
+  g.fillStyle = "rgba(90,50,45,0.4)"; g.fillRect(0, 360, 1024, 152);
+});
+
 // deco palette: muted pastels (never lavender in shade: warm creams, peach, mint-teal, ochre)
 const DECO = [
   { wall: "#efe3c6", shutter: "#3f6f8f", band: "#c9a979" }, { wall: "#f2cfb0", shutter: "#2f5f6a", band: "#d98f6f" },
@@ -111,7 +126,7 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
   const road = lam("rkRoad", () => ({ map: asphalt() })), pave = lam("rkPave", () => ({ map: paving() }));
   for (const m of [road, pave]) if (m.map) { m.map.wrapS = m.map.wrapT = THREE.RepeatWrapping; m.map.anisotropy = 16; }
   const white = lam("rkLine", () => ({ color: "#f1ede2" })), kerb = lam("rkKerb", () => ({ color: "#bdb6aa" }));
-  const wallM = lam("rkSeaWall", () => ({ color: "#a59d90" })), grass = lam("rkGrass", () => ({ color: "#7fb35a" }));
+  const wallM = lam("rkSeaWall", () => ({ color: "#a59d90" })), grass = lam("rkGrass", () => ({ color: "#7fb35a" })), plaza = lam("rkPlaza", () => ({ color: "#c4baa8" }));
   const XA = -420, XB = 520;
   const up = (x0: number, x1: number, z0: number, z1: number, m: THREE.Material, dy = 0, tile = 6) => {
     const g = new THREE.BufferGeometry(), y = D0 + dy;
@@ -125,7 +140,7 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
   up(XA, XB, -34, Z_WALL, pave, 0.15, 3);                                    // promenade (raised kerb)
   up(XA, XB, -48, -34, road, 0, 10);                                          // road
   up(XA, XB, -51, -48, pave, 0.15, 3);                                        // city footpath
-  up(XA, XB, -400, -51, grass, -0.02, 20);                                     // behind the frontage
+  up(XA, XB, -400, -51, plaza, -0.02, 20);                                     // city ground behind the frontage (paved)
   b.add(boxGeo(V(XA, D0, -34.1), V(XB, D0 + 0.15, -33.9)), kerb); b.add(boxGeo(V(XA, D0, -48.1), V(XB, D0 + 0.15, -47.9)), kerb);
   // sea wall + parapet + tetrapods below
   const wg = new THREE.BufferGeometry();
@@ -181,7 +196,7 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
   b.add(new THREE.CylinderGeometry(2.1, 2.1, 0.05, 24).translate(ROUND[0], D0 + 1.06, ROUND[2]), lam("rkFountW", () => ({ color: "#6fc3dd" })));
   b.add(new THREE.CylinderGeometry(0.25, 0.4, 2.2, 10).translate(ROUND[0], D0 + 2.1, ROUND[2]), lam("rkFount", () => ({ color: "#e9e1d0" })));
   for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2; b.add(new THREE.SphereGeometry(0.35, 8, 6).translate(ROUND[0] + 5.6 * Math.cos(a), D0 + 0.55, ROUND[2] + 5.6 * Math.sin(a)), lam("rkFlower" + (k % 3), () => ({ color: ["#e8505b", "#f2c94c", "#f07aa8"][k % 3] }))); }
-  up(ROUND[0] - 19, ROUND[0] + 19, ROUND[2] - 19, ROUND[2] + 10, road, 0.004, 10);                    // road apron round the island
+  up(ROUND[0] - 16, ROUND[0] + 16, ROUND[2] - 16, ROUND[2] + 18, road, 0.004, 10);                    // road apron round the island (joins Marine Drive)
   // Happy Singh's garage: room open toward +z
   const [gx, , gz] = GARAGE, W = 10, Dp = 9, Hh = 4.6, x0 = gx - W / 2, x1 = gx + W / 2, z0 = gz - Dp + 3, z1 = gz + 3;
   const gWall = lam("rkGWall", () => ({ color: "#6f8fa3" })), peg = lam("rkPegM", () => ({ map: pegboard() })), floor = lam("rkGFloor", () => ({ map: concrete() }));
@@ -202,7 +217,9 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
   root.add(bulb);
   // door glow: a warm emissive plane just outside the doorway, faded in by world.ts
   // (a big double-sided plane some metres beyond the doorway: through the door the street reads as a wall of gold light)
-  const door = new THREE.Mesh(new THREE.PlaneGeometry(W + 14, 9).translate(gx, D0 + 4.2, z1 + 9), new THREE.MeshBasicMaterial({ color: new THREE.Color(0, 0, 0), transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+  const door = new THREE.Mesh(new THREE.PlaneGeometry(W + 14, 9).translate(gx, D0 + 4.2, z1 + 9), new THREE.MeshBasicMaterial({ map: sunsetStreet(), color: new THREE.Color(0, 0, 0), transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+  b.add(boxGeo(V(x0 + 0.15, D0, z1 - 0.05), V(x0 + 0.45, D0 + Hh - 1.3, z1 + 0.35)), lam("rkDoorTrim", () => ({ color: "#2b2a33" })));
+  b.add(boxGeo(V(x1 - 0.45, D0, z1 - 0.05), V(x1 - 0.15, D0 + Hh - 1.3, z1 + 0.35)), lam("rkDoorTrim", () => ({ color: "#2b2a33" })));
   root.add(door);
   // a short garage-street outside: road + the frontage across it
   up(gx - 30, gx + 30, z1 + 0.3, z1 + 14, road, 0.003, 10);

@@ -5,7 +5,7 @@
 // Cards, effects and blobs live on the NOINK layer so the world ink pass never outlines their quads.
 import * as THREE from "three";
 import { Pen, bodyFront, bodySide, KID, fxRing, fxShadow, fxContact, fxStars, fxBurst, NATRAJ, HAPPY_SINGH, UMBRELLA_LADY, folk1628, Outfit, Expr, FrontOpts, SideOpts } from "./toon";
-import { FPS, D0, SHOTS, V3, smooth, clamp01, badshahAt, bijliAt, AutoPos, LANE, ROUND, GARAGE, GRANDMA_AT, UMBRELLA_AT, HAPPY_AT, CRASH, CRASH_F, FLOWER_F, BIJLI_IN, badshahGlow, bijliGlow, honk } from "./story";
+import { FPS, D0, SHOTS, V3, smooth, clamp01, badshahAt, bijliAt, AutoPos, LANE, ROUND, GARAGE, GRANDMA_AT, UMBRELLA_AT, HAPPY_AT, CRASH, CRASH_F, FLOWER_F, BIJLI_IN, badshahGlow, bijliGlow, honk, doorGold } from "./story";
 import { autoFront, autoSide, AutoLook, AutoState, BADSHAH, BIJLI, GRANDMA, PLAIN } from "./autos";
 import { NOINK } from "./ink";
 import { cardShade, blobMaterial, CARD_K } from "./cardshade";
@@ -239,7 +239,8 @@ const auto = (out: Stage, cam: CamInfo, t: number, name: string, look: AutoLook,
     mirror: side && v.mirror, roll: st.tilt ? 0 : 0,
     draw: (pen) => (side ? autoSide(pen, look, s2) : autoFront(pen, look, s2)),
   });
-  if (shadow) blob(out, p.x, D0, p.z, 2.6, 0.9);
+  if (shadow) { const cc = hexOf(CONTACT[LNAME], 0.95), along = Math.abs(p.dx) > Math.abs(p.dz);
+    out.fx.push({ key: `blob|contact|${cc}`, cw: 128, ch: 128, draw: (pp) => fxContact(pp, cc), x: p.x, y: D0 + 0.022, z: p.z, w: along ? 2.6 : 1.5, h: along ? 1.5 : 2.6, flat: true }); }
 };
 /** world position of a front card's right / left headlight (canvas x 364 / 236, y 532) as seen from the lens */
 const headlightPos = (cam: CamInfo, p: AutoPos, side: number): V3 => {
@@ -271,8 +272,9 @@ const petals = (out: Stage, t: number, base: V3, n = 9) => {
 
 /** Badshah's face for the beat at frame f */
 const badshahState = (id: number, f: number): AutoState => {
-  const t = f / FPS, g: "up" | "down" = f >= 540 && id < 9 ? "down" : id >= 6 && id <= 8 ? "down" : "up";
-  const base: AutoState = { goggles: g, toothpick: f >= 545 && id <= 8 ? 1.1 : 0.25 };
+  const t = f / FPS, g: "up" | "down" = (id === 6 && f >= 540) || id === 7 || id === 8 ? "down" : "up";
+  const sad = (id === 5 && f >= 470) || id === 9 || (id === 10 && f < 878) || id === 11 || (id === 12 && f < 1219) || id === 14 || (id === 15 && f < 1819);
+  const base: AutoState = { goggles: g, toothpick: f >= 545 && id <= 8 ? 1.1 : 0.25, natraj: sad ? "sad" : (id === 6 && f >= 545) || id === 7 || id === 8 ? "set" : "grin" };
   switch (id) {
     case 1: return { ...base, eye: "open", mouth: "flat", look: 0.3 };
     case 2: return f < 186 - 2 ? { ...base, eye: "open", mouth: "flat", look: -0.2 } : { ...base, eye: "heart", mouth: "smile" };
@@ -310,10 +312,10 @@ const bijliState = (id: number, f: number): AutoState => {
     case 4: return { eye: "soft", mouth: "smile", look: -0.5 };
     case 5: return { eye: "soft", mouth: "smile", look: f > 444 && f < 468 ? -0.9 : 0 };      // a glance back at the green light
     case 12: case 13: return { eye: "soft", mouth: "smile", look: -0.3 };
-    case 15: return { eye: "soft", mouth: "shy" };
-    case 16: return { eye: "soft", mouth: "smile" };
-    case 17: return { eye: "soft", mouth: "smile", glow: [bijliGlow(f), bijliGlow(f)] };
-    case 18: return { eye: "soft", mouth: "smile", look: -0.4 };
+    case 15: return { eye: "open", mouth: "smile", blush: 0.85, look: -0.2 };
+    case 16: return { eye: "soft", mouth: "smile", blush: 0.7 };
+    case 17: return { eye: "soft", mouth: "smile", blush: 0.6, glow: [bijliGlow(f), bijliGlow(f)] };
+    case 18: return { eye: "soft", mouth: "smile", blush: 0.4, look: -0.4 };
     default: return { eye: "soft", mouth: "smile" };
   }
 };
@@ -337,6 +339,7 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
       auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
       if (J) auto(out, cam, t, "bijli", BIJLI, bijliState(id, f), J, 2);
       if (id === 4) puff(out, [B.x - 1.0, D0 + 0.5, B.z + 0.4], (f - 393) / 20);
+      if ((id === 2 && f >= 186) || (id === 4 && f >= 336)) hearts(out, t, [B.x, D0 + 1.9, B.z], id === 2 ? f - 186 : f - 336);
       break;
     }
     case "chase": {
@@ -344,11 +347,16 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
       const sx = (x0: number) => x0 + (f - 564) * 0.22;
       traffic(out, cam, t, f, [[sx(30), LANE.sea, 1, 1], [sx(48), LANE.e2, 1, 1], [sx(70), LANE.sea, 1, 1], [sx(88), LANE.e2, 1, 1], [60 - (f - 564) * 0.4, LANE.w1, -1, 1]]);
       for (let k = 0; k < 3; k++) puff(out, [B.x - 1.4 - k * 0.6, D0 + 0.35, B.z], ((f * 0.08 + k / 3) % 1));
+      auto(out, cam, t, "bijli", BIJLI, { eye: "soft", mouth: "smile" }, { x: B.x + 5.5 + 0.05 * (f - 564), z: LANE.sea, dx: 1, dz: 0, speed: 1 }, 2);
+      for (let k = 0; k < 5; k++) out.fx.push({ key: "speed", cw: 256, ch: 32, draw: (p) => p.stroke([[8, 16], [248, 16]], 7, "rgba(255,255,255,0.85)"), x: B.x - 1.8 - 0.5 * k, y: D0 + 0.4 + 0.28 * k, z: B.z + 0.2, w: 1.4 + 0.3 * (k % 2), h: 0.08 });
       break;
     }
     case "round": {
+      const ab = (f - 648) * 0.045;
       for (let i = 0; i < 40; i++) {
-        const r = 10.5 + (i % 3) * 2.3, a = (i / 40) * Math.PI * 2 + (f - 648) * (0.042 - (i % 3) * 0.004);
+        const r = 9.5 + (i % 3) * 1.5, a = (i / 40) * Math.PI * 2 + (f - 648) * (0.042 - (i % 3) * 0.004);
+        const da = Math.atan2(Math.sin(a - ab), Math.cos(a - ab));
+        if (i % 3 !== 2 && Math.abs(da) < 0.6) continue;                          // keep Badshah's slot and the inner ring beside him clear
         auto(out, cam, t, "p0", PLAIN(0), { eye: "open", mouth: "flat" }, { x: ROUND[0] + r * Math.cos(a), z: ROUND[2] + r * Math.sin(a), dx: -Math.sin(a), dz: Math.cos(a), speed: 1 }, 40 + i, false);
       }
       auto(out, cam, t, "badshah", BADSHAH, bs, B, 1, false);
@@ -392,6 +400,11 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
         out.places.push(person(cam, { i: 66, o: HAPPY_SINGH, okey: "happy" }, HAPPY_AT[0], D0 + hop, HAPPY_AT[2], { side: false, mirror: false }, fo, {}));
         blob(out, HAPPY_AT[0], D0 + 0.02, HAPPY_AT[2], 1.1);
       }
+      if (id >= 15) {
+        const gk = id === 15 ? doorGold(f) : 1;
+        for (let k = 0; k < 3; k++) out.fx.push({ key: "ray", cw: 128, ch: 512, draw: rayCard, x: GARAGE[0] - 1.6 + 1.6 * k, y: D0 + 2.0, z: GARAGE[2] + 1.6, w: 1.0, h: 4.2, rot: 0.32 - 0.12 * k, soft: true, glow: 0.6 * gk });
+        out.fx.push({ key: "pool", cw: 256, ch: 256, draw: glowCard, x: GARAGE[0], y: D0 + 0.03, z: GARAGE[2] + 1.0, w: 5.5 * gk + 0.01, h: 4.5 * gk + 0.01, flat: true, soft: true, glow: 0.4 * gk });
+      }
       if (id === 17) {
         glow(out, cam, headlightPos(cam, B, 1), badshahGlow(f));
         if (J) { const k = bijliGlow(f); glow(out, cam, headlightPos(cam, J, 1), k); glow(out, cam, headlightPos(cam, J, -1), k); }
@@ -406,6 +419,19 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
     default: break;
   }
   return out;
+};
+const rayCard = (p: Pen) => {
+  const g = p.g, gr = g.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0, "rgba(255,214,140,0.0)"); gr.addColorStop(0.35, "rgba(255,214,140,0.42)"); gr.addColorStop(1, "rgba(255,214,140,0.0)");
+  g.fillStyle = gr; g.beginPath(); g.moveTo(40, 0); g.lineTo(88, 0); g.lineTo(128, 512); g.lineTo(0, 512); g.closePath(); g.fill();
+};
+const hearts = (out: Stage, t: number, at: V3, df: number) => {
+  for (let i = 0; i < 4; i++) {
+    const u = ((df / 30) * 0.6 + i * 0.25) % 1;
+    if (df < i * 6) continue;
+    out.fx.push({ key: "heart", cw: 128, ch: 128, draw: (p) => p.poly([[64, 110], [16, 60], [24, 30], [46, 22], [64, 40], [82, 22], [104, 30], [112, 60]], "#ef4f7d", 7),
+      x: at[0] + (hh(i, 7) - 0.5) * 0.8, y: at[1] + 0.9 * u, z: at[2] + (hh(i, 8) - 0.5) * 0.4, w: 0.26 * (1 - 0.3 * u), h: 0.26 * (1 - 0.3 * u), rot: 0.3 * Math.sin(t * 3 + i) });
+  }
 };
 const umbrella = (p: Pen) => {
   const pts: [number, number][] = [];

@@ -90,6 +90,7 @@ export const moodLook = (K: WorldLook, m: Mood): WorldLook => {
       water: { ...K.water, near: "#5f8f98", mid: "#6a8d9c", far: "#a9aeb2", crest: "#c8d6d8", trough: "#4a6670" } };
     case "warm": return { ...K, sat: 1.1, sky: { c: ["#ffd79a", "#ffc583", "#f6ad7e", "#d99b8e", "#9c88a0"], e: [0, 4, 10, 20, 40] },
       water: { ...K.water, near: "#2a5486", mid: "#4a78a6", far: "#e8b88e", crest: "#f0c49a", glint: "#fff0c8" } };
+    case "golden": return { ...K, water: { ...K.water, near: "#3a4f86", mid: "#8a6f96", far: "#f2b98a", crest: "#ffd6a0", glint: "#fff2c8", trough: "#2a3466" } };
     case "garage": return { ...K, sat: 0.85 };
     case "garageGold": return { ...K, sat: 1.12 };
     default: return K;

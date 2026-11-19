@@ -199,15 +199,15 @@ export class World {
     const lampsOn = s.mood === "golden" ? 1 : s.mood === "warm" ? 0.35 : 0;
     for (const h of this.set.lampHeads) (h.material as THREE.MeshBasicMaterial).color.setRGB(0.95 + 2.2 * lampsOn, 0.92 + 1.7 * lampsOn, 0.85 + 1.0 * lampsOn);
     const sig = signalAt(f);
-    (this.set.signal.red.material as THREE.MeshBasicMaterial).color.set(sig === "red" ? new THREE.Color(3.2, 0.4, 0.3) : new THREE.Color("#4a1714"));
+    (this.set.signal.red.material as THREE.MeshBasicMaterial).color.set(sig === "red" ? new THREE.Color(9, 0.9, 0.5) : new THREE.Color("#4a1714"));
     (this.set.signal.amber.material as THREE.MeshBasicMaterial).color.set(sig === "amber" ? new THREE.Color(3.0, 1.9, 0.3) : new THREE.Color("#4a3812"));
-    (this.set.signal.green.material as THREE.MeshBasicMaterial).color.set(sig === "green" ? new THREE.Color(0.4, 3.0, 0.8) : new THREE.Color("#123a1c"));
+    (this.set.signal.green.material as THREE.MeshBasicMaterial).color.set(sig === "green" ? new THREE.Color(0.8, 9, 2.0) : new THREE.Color("#123a1c"));
     const inGarage = s.mood === "garage" || s.mood === "garageGold";
     this.bulbLight.intensity = inGarage ? (s.mood === "garage" ? 6 : 3) : 0;
     this.bulbLight.position.set(GARAGE[0], D0 + 3.55, GARAGE[2] - 1.5);
     const g = s.mood === "garageGold" ? doorGold(f) : 0;
     const dm = this.set.door.material as THREE.MeshBasicMaterial;
-    dm.opacity = inGarage ? 1 : 0; dm.color.setRGB(0.25 + 3.2 * g, 0.22 + 2.1 * g, 0.28 + 0.9 * g);
+    dm.opacity = inGarage ? 1 : 0; dm.color.setScalar(0.12 + 1.9 * g);
     this.doorLight.intensity = 40 * g; this.doorLight.position.set(-260, D0 + 3.2, -48); this.doorLight.target.position.set(-260, D0, -62);
     // ---- cast + effects ----
     const right = V(0, 0, 0).setFromMatrixColumn(cam.matrixWorld, 0);

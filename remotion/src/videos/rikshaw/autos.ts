@@ -14,6 +14,7 @@ export type AutoMouth = "smile" | "grin" | "o" | "frown" | "wobble" | "flat" | "
 export type AutoState = {
   eye?: AutoEye; lid?: number; look?: number; mouth?: AutoMouth; shiver?: number; tilt?: number;
   tape?: boolean; glow?: [number, number]; flower?: boolean; mirror?: number; goggles?: "up" | "down"; toothpick?: number;
+  blush?: number; natraj?: "grin" | "sad" | "set";
 };
 
 export const BADSHAH: AutoLook = { roof: "#f4c21b", body: "#26262c", band: "#f4c21b", trim: "#e2b443", crown: true, driver: "natraj", dents: true };
@@ -69,6 +70,7 @@ const headEye = (p: Pen, x: number, y: number, r: number, s: AutoState, side: nu
       p.g.restore();
     });
     p.stroke([[x - R * 0.95, yl + tiltL * 0.9], [x + R * 0.95, yl - tiltL * 0.9]], 6);
+    if (top > 0.3) p.arc(x, yl - 8, R * 0.55, 6, 200, 340, 3.5);                                        // eyelid crease
   }
   if (kind === "squint") p.stroke([[x - R * 0.8, y + R * 0.55], [x + R * 0.8, y + R * 0.5]], 5);
   if (kind === "closed") p.arc(x, y + R * 0.1, R * 0.6, R * 0.35, 20, 160, 6);
@@ -101,14 +103,16 @@ const mouthAuto = (p: Pen, kind: AutoMouth, x: number, y: number, w: number) => 
 const natrajHead = (p: Pen, x: number, y: number, r: number, s: AutoState, side: boolean) => {
   p.ell(x, y, r, r * 1.05, "#d9a77e", 5);
   p.poly([[x - r, y - r * 0.2], [x - r * 0.8, y - r * 0.95], [x + r * 0.8, y - r * 0.95], [x + r, y - r * 0.2], [x + r * 0.7, y - r * 0.55], [x - r * 0.7, y - r * 0.55]], "#1f1a1a", 4); // hair
-  const gy = s.goggles === "down" ? y - r * 0.05 : y - r * 0.62;
+  const gy = s.goggles === "down" ? y - r * 0.05 : y - r * 0.5;
   p.stroke([[x - r * 1.02, gy], [x + r * 1.02, gy]], 7, "#3a2a24");                                   // strap
-  for (const k of side ? [1] : [-1, 1]) p.ell(x + k * r * 0.38 + (side ? r * 0.25 : 0), gy, r * 0.33, r * 0.28, s.goggles === "down" ? "#3b4b5e" : "#5d7286", 5);
+  for (const k of side ? [1] : [-1, 1]) { p.ell(x + k * r * 0.38 + (side ? r * 0.25 : 0), gy, r * 0.33, r * 0.28, s.goggles === "down" ? "#3b4b5e" : "#9cc2dc", 6); p.ell(x + k * r * 0.38 - r * 0.1 + (side ? r * 0.25 : 0), gy - r * 0.08, r * 0.08, r * 0.06, "#ffffff", 0); }
   if (s.goggles !== "down") for (const k of side ? [1] : [-1, 1]) p.ell(x + k * r * 0.35 + (side ? r * 0.25 : 0), y + r * 0.05, 5, 6, INK, 0);
-  const mx = x + (side ? r * 0.55 : r * 0.1), my = y + r * 0.45;
-  p.arc(mx, my - 6, r * 0.3, 8, 20, 160, 4);
+  const mx = x + (side ? r * 0.55 : r * 0.1), my = y + r * 0.45, md = s.natraj ?? "grin";
+  if (md === "sad") { p.arc(mx, my + 8, r * 0.26, 7, 200, 340, 4); if (s.goggles !== "down") for (const k of side ? [1] : [-1, 1]) p.stroke([[x + k * r * 0.2 + (side ? r * 0.25 : 0), y - r * 0.22], [x + k * r * 0.52 + (side ? r * 0.25 : 0), y - r * 0.12]], 4); }
+  else if (md === "set") { p.stroke([[mx - r * 0.25, my], [mx + r * 0.25, my - 3]], 5); }
+  else p.arc(mx, my - 6, r * 0.3, 8, 20, 160, 4);
   const tp = s.toothpick ?? 0.2;                                                                          // toothpick angle
-  p.stroke([[mx + r * 0.15, my], [mx + r * 0.15 + r * 0.6 * Math.cos(tp), my - r * 0.6 * Math.sin(tp)]], 4, "#d9b37a");
+  p.stroke([[mx + r * 0.15, my], [mx + r * 0.15 + r * 0.8 * Math.cos(tp), my - r * 0.8 * Math.sin(tp)]], 6.5, "#d9b37a");
 };
 const genericHead = (p: Pen, x: number, y: number, r: number) => {
   p.ell(x, y, r, r * 1.05, "#c99067", 5);
@@ -118,16 +122,23 @@ const genericHead = (p: Pen, x: number, y: number, r: number) => {
 };
 
 /** jasmine garland: white buds on a string, one orange marigold */
+/** a jasmine bud: small white five-point star with a green calyx dot */
+const bud = (p: Pen, x: number, y: number, s: number, rot = 0) => {
+  const pts: P2[] = [];
+  for (let k = 0; k < 10; k++) { const a = rot + (k / 10) * Math.PI * 2 - Math.PI / 2, r = k % 2 ? 4.2 * s : 11 * s; pts.push([x + r * Math.cos(a), y + r * Math.sin(a)]); }
+  p.poly(pts, "#fdfdf6", 2.6 * Math.min(1.4, s));
+  p.ell(x, y, 2.4 * s, 2.4 * s, "#b9d48a", 0);
+};
 const garland = (p: Pen, x0: number, y0: number, x1: number, y1: number, sag: number, sway = 0) => {
-  const n = 12;
+  const n = 14;
+  p.stroke(Array.from({ length: n + 1 }, (_, i) => { const t = i / n; return [x0 + (x1 - x0) * t + sway * Math.sin(t * Math.PI), y0 + (y1 - y0) * t + sag * 4 * t * (1 - t)] as P2; }), 2.5, "#5d7a3a");
   for (let i = 0; i <= n; i++) {
     const t = i / n, x = x0 + (x1 - x0) * t + sway * Math.sin(t * Math.PI), y = y0 + (y1 - y0) * t + sag * 4 * t * (1 - t);
-    p.ell(x, y, 11, 9, i === Math.floor(n / 2) ? "#f29a2e" : "#fbfbf3", 3.5);
+    bud(p, x + (i % 2 ? 4 : -4), y, 0.95, i * 0.7);
   }
 };
 const flowerAt = (p: Pen, x: number, y: number, s = 1) => {
-  for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; p.ell(x + 11 * s * Math.cos(a), y + 11 * s * Math.sin(a), 9 * s, 7 * s, "#fbfbf3", 3, 0, 360, (a * 180) / Math.PI); }
-  p.ell(x, y, 5 * s, 5 * s, "#f2c94c", 2);
+  for (const [dx, dy, r] of [[0, 0, 0], [16, -8, 1], [-14, -10, 2], [6, 14, 3], [-10, 12, 4]] as const) bud(p, x + dx * s, y + dy * s, 1.15 * s, r);
 };
 
 // ---------------- front view ----------------
@@ -156,7 +167,7 @@ export const autoFront = (p: Pen, o: AutoLook, s: AutoState) => {
       p.poly([[190, 240], [230, 240], [180, 410], [160, 410]], "rgba(255,255,255,0.35)", 0);              // glare streak
     });
     p.poly(glass, null, 6);
-    p.stroke([[300, 418], [372, 300]], 5, "#2a2a30");                                                     // wiper
+    p.stroke([[186, 412], [330, 404]], 5, "#2a2a30");                                                     // wiper (parked)
     // mirrors on stalks (right one wobbly)
     const mw = s.mirror ?? 0;
     for (const k of [-1, 1]) {
@@ -176,8 +187,9 @@ export const autoFront = (p: Pen, o: AutoLook, s: AutoState) => {
       const cx = 300, cy = 452, pts: P2[] = [[cx - 26, cy + 10], [cx - 26, cy - 12], [cx - 13, cy], [cx, cy - 18], [cx + 13, cy], [cx + 26, cy - 12], [cx + 26, cy + 10]];
       p.poly(pts, o.trim ?? "#e2b443", 4);
     }
-    headEye(p, 236, 532, 46, { ...s }, -1, o, body);
-    headEye(p, 364, 532, 46, { ...s }, 1, o, body);
+    headEye(p, 236, 532, 46, { ...s }, -1, o, o.band);
+    headEye(p, 364, 532, 46, { ...s }, 1, o, o.band);
+    if ((s.blush ?? 0) > 0.01) for (const k of [-1, 1]) p.ell(300 + k * 92, 586, 26, 13, `rgba(240,110,150,${(0.75 * (s.blush ?? 0)).toFixed(2)})`, 0);
     if (o.glasses) {
       for (const k of [-1, 1]) p.ell(300 + k * 64, 532, 60, 60, null, 6);
       p.stroke([[276, 520], [324, 520]], 6);
@@ -205,6 +217,8 @@ export const autoSide = (p: Pen, o: AutoLook, s: AutoState) => {
     for (let i = 0; i <= 14; i++) { const t = i / 14; can.push([100 + 560 * t, 180 - 60 * Math.sin(Math.PI * (0.25 + 0.75 * t)) * (t < 0.15 ? t / 0.15 : 1)]); }
     can.push([660, 190], [660, 222], [96, 222]);
     p.gradFill(can, roof, roofSh, -2.1); p.poly(can, null, 8);
+    p.poly([[110, 222], [646, 222], [646, 370], [110, 370]], "#3a3540", 0);                             // cabin interior (opaque)
+    p.poly([[130, 236], [520, 236], [520, 350], [130, 350]], "#4a4452", 0);                             // seat back
     for (const x of [116, 640]) p.poly([[x - 6, 222], [x + 6, 222], [x + 6, 380], [x - 6, 380]], "#2a2a30", 4);
     // driver
     if (o.driver === "natraj") natrajHead(p, 590, 300, 50, s, true);
@@ -215,7 +229,8 @@ export const autoSide = (p: Pen, o: AutoLook, s: AutoState) => {
     p.gradFill(cowl, body, mixc(body, "#000000", 0.35), -2.0); p.poly(cowl, null, 8);
     p.poly([[602, 336], [702, 336], [736, 366], [606, 366]], o.band, 4);
     if (o.crown) p.poly([[680, 352], [680, 336], [690, 346], [700, 330], [710, 346], [720, 336], [720, 352]], o.trim ?? "#e2b443", 3.5);
-    headEye(p, 770, 470, 38, s, 1, o, body);
+    headEye(p, 770, 470, 38, s, 1, o, o.band);
+    if ((s.blush ?? 0) > 0.01) p.ell(756, 516, 20, 10, `rgba(240,110,150,${(0.75 * (s.blush ?? 0)).toFixed(2)})`, 0);
     p.poly(rr(738, 530, 806, 584, 14), "#d4d7dd", 5);
     mouthAuto(p, s.mouth ?? "flat", 772, 557, 26);
     // mirror + garland / flower

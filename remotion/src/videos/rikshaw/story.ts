@@ -26,7 +26,7 @@ export const MEDIAN = -41;                        // divider with lamp posts
 export const FOOT = -49;                          // city-side footpath; building fronts at -51
 export const SIGNAL_X = 0;                        // stop line for the eastbound lanes
 export const CRASH: V3 = [72, D0, MEDIAN];        // the lamp post Badshah meets
-export const ROUND: V3 = [330, D0, -41];          // the busiest roundabout in Mumbai (island r 7, ring to r 18)
+export const ROUND: V3 = [330, D0, -66];          // the busiest roundabout in Mumbai, just inland (island r 7, ring r 9.5-12.5)
 export const GARAGE: V3 = [-260, D0, -60];        // Happy Singh's garage: room x -265..-255, z -66..-56, open toward +z
 
 // ---------------- shots ----------------
@@ -113,7 +113,7 @@ export const badshahAt = (id: number, f: number): AutoPos => {
     case 1: case 2: case 3: case 4: case 6: return { x: BX0, z: ZB, dx: 1, dz: 0, speed: 0 };
     case 5: { const x = BX0 + 3.5 * smooth((f - 470) / 30) * ((f - 470) / 30); return { x, z: ZB, dx: 1, dz: 0, speed: f > 470 ? 1 : 0 }; }
     case 7: return { x: 6 + (f - 564) * 0.62, z: lin([[564, ZB], [610, ZB], [630, LANE.sea]], f), dx: 1, dz: 0, speed: 1 };
-    case 8: { const a = (f - 648) * 0.045, r = 12.5; return { x: ROUND[0] + r * Math.cos(a), z: ROUND[2] + r * Math.sin(a), dx: -Math.sin(a), dz: Math.cos(a), speed: 1 }; }
+    case 8: { const a = (f - 648) * 0.045, r = 11; return { x: ROUND[0] + r * Math.cos(a), z: ROUND[2] + r * Math.sin(a), dx: -Math.sin(a), dz: Math.cos(a), speed: 1 }; }
     case 9: return { x: ROUND[0] + 32 + 2 * smooth((f - 779) / 30), z: LANE.e2, dx: 1, dz: 0, speed: f < 805 ? 0.4 : 0 };
     case 10: return { x: 150, z: LANE.e2, dx: 1, dz: 0, speed: 0 };
     case 11: return { x: 190, z: LANE.e2, dx: 1, dz: 0, speed: 0 };
@@ -142,7 +142,7 @@ export const bijliAt = (id: number, f: number): AutoPos | null => {
     case 13: return { x: 68, z: LANE.sea, dx: 1, dz: 0, speed: 0 };
     case 15: return f >= BIJLI_IN ? { x: GARAGE[0] + 0.8 - 0.4 * smooth((f - BIJLI_IN) / 40), z: GARAGE[2] + 6.5 - 2.4 * smooth((f - BIJLI_IN) / 40), dx: 0, dz: -1, speed: f < BIJLI_IN + 40 ? 0.3 : 0 } : null;
     case 16: case 17: return { x: GARAGE[0] + 0.4, z: GARAGE[2] + 4.1, dx: 0, dz: -1, speed: 0 };
-    case 18: return { x: 21.5 + 0.09 * (f - 2209), z: LANE.sea, dx: 1, dz: 0, speed: 0.4 };
+    case 18: return { x: 20.9 + 0.09 * (f - 2209), z: LANE.sea, dx: 1, dz: 0, speed: 0.4 };
     default: return null;
   }
 };
@@ -163,13 +163,15 @@ const S4a = (f: number) => dolly([0.2, H + 1.0, ZB + 0.25], [BX0, H + 0.82, ZB],
 const S5a = (f: number) => dolly([-3.2, H + 4.7, -37.4], [0.3, H + 5.35, -38.75], pushK(f, 418, 0.003), { fov: 34 });
 const S5b = (f: number) => dolly([1.0, H + 1.6, -31.2], [-1.0, H + 0.9, -38], pushK(f, 440, 0.0018), { fov: 46 });
 // 6: Natraj behind the windscreen pulls his goggles down
-const S6a = (f: number) => dolly([-0.9, H + 1.12, ZB + 0.15], [BX0, H + 1.05, ZB], pushK(f, 487, 0.0025, 0.006, 25), { fov: 32, roll: -0.03 });
+const S6a = (f: number) => dolly([-0.6, H + 1.2, ZB + 0.15], [BX0, H + 1.08, ZB], pushK(f, 487, 0.0025, 0.006, 25), { fov: 38, roll: -0.03 });
 // 7: chase, tracking alongside from the promenade; whip on "corner"
 const S7a = (f: number) => { const b = B(7, f); return { pos: [b.x + 2.2, H + 1.7, -31.2] as V3, look: [b.x + 0.4, H + 0.9, b.z] as V3, fov: 46, roll: 0.03 }; };
 const S7b = (f: number) => { const b = B(7, f); return { pos: [b.x + 9, H + 1.2, LANE.e2 + 0.5] as V3, look: [b.x, H + 0.9, b.z] as V3, fov: 40, roll: -0.04 }; };
 // 8: the roundabout from above, then low among the identical autos
-const S8a = (f: number) => dolly([ROUND[0] + 24, 31, ROUND[2] + 24], [ROUND[0], H, ROUND[2]], pushK(f, 648, 0.0025), { fov: 46 });
-const S8b = (f: number) => dolly([ROUND[0] + 9, H + 1.6, ROUND[2] + 21], [ROUND[0] + 2, H + 0.9, ROUND[2] + 10], pushK(f, 708, 0.002), { fov: 44, roll: 0.03 });
+const S8a = (f: number) => dolly([ROUND[0] + 22, 29, ROUND[2] + 22], [ROUND[0], H, ROUND[2]], pushK(f, 648, 0.0025), { fov: 46 });
+/** riding with Badshah round the ring: he is big in the foreground, the identical autos circle behind him */
+const S8b = (f: number): Shot => { const b = B(8, f), nx = (b.x - ROUND[0]) / 11, nz = (b.z - ROUND[2]) / 11;
+  return { pos: [b.x + b.dx * 2.6 - nx * 3.4, H + 2.3, b.z + b.dz * 2.6 - nz * 3.4], look: [b.x + nx * 0.6, H + 0.85, b.z + nz * 0.6], fov: 50, roll: 0.03 }; }; // from above the island edge
 // 9: out of the roundabout, dazed, alone
 const S9a = (f: number) => { const b = B(9, f); return dolly([b.x + 5.5, H + 1.3, b.z + 0.5], [b.x, H + 0.95, b.z], pushK(f, 779, 0.0022), { fov: 40 }); };
 // 10: noon search: Badshah -> the grandma auto -> the pink umbrella
@@ -191,7 +193,7 @@ const S13b = (f: number) => dolly([CRASH[0] - 4.0, H + 1.6, -34.6], [CRASH[0] + 
 // 14: the garage: from the door looking in; Happy Singh laughing; Badshah still
 const G = GARAGE;
 export const HAPPY_AT: V3 = [G[0] + 1.6, D0, G[2] - 0.4];
-const S14a = (f: number) => dolly([G[0] + 1.0, H + 1.5, G[2] + 5.2], [G[0] + 0.95, H + 1.05, G[2] - 1.2], pushK(f, 1468, 0.002), { fov: 46 });
+const S14a = (f: number) => dolly([G[0] + 0.9, H + 1.6, G[2] + 6.4], [G[0] + 0.8, H + 1.05, G[2] - 1.0], pushK(f, 1468, 0.002), { fov: 50 });
 const S14b = (f: number) => dolly([HAPPY_AT[0] - 0.4, H + 1.7, HAPPY_AT[2] + 3.4], [HAPPY_AT[0], H + 1.75, HAPPY_AT[2]], pushK(f, 1620, 0.0025, 0.006, 25), { fov: 40 });
 const S14c = (f: number) => dolly([G[0] - 0.2, H + 1.05, G[2] + 2.6], [G[0], H + 0.9, G[2] - 1.2], pushK(f, 1688, 0.0025), { fov: 36 });
 // 15: inside, looking out at the door: gold light, the honk, Bijli in the doorway
@@ -204,8 +206,8 @@ const S17a = (f: number) => dolly([G[0] + 0.1, H + 1.05, G[2] + 2.2], [G[0], H +
 const S17b = (f: number) => dolly([G[0] + 0.3, H + 1.05, G[2] + 0.9], [G[0] + 0.4, H + 0.85, G[2] + 4.1], pushK(f, 2168, 0.0018), { fov: 34, roll: -0.02 });
 // 18: golden evening on Marine Drive: low beside the two autos, crane up and out over the sea wall
 // (from the city side looking out to sea: the two autos cross the frame in side view, the sun setting over the water)
-const S18a = (f: number) => { const b = B(18, f); return { pos: [b.x + 1.0, H + 1.3, -45.6] as V3, look: [b.x + 1.2, H + 1.0, -30] as V3, fov: 42, roll: 0 }; };
-const S18b = (f: number): Shot => { const b = B(18, f), u = glide((f - 2262) / 78); return { pos: [b.x + 1.0 - 6 * u, H + 1.3 + 13 * u, -45.6 - 9 * u], look: [b.x + 1.2 + 2 * u, H + 1.0 - 1.5 * u, -30 + 12 * u], fov: 42 + 6 * u, roll: 0 }; };
+const S18a = (f: number) => { const b = B(18, f); return { pos: [b.x + 0.8, H + 1.4, -46.4] as V3, look: [b.x + 0.8, H + 1.05, -30] as V3, fov: 40, roll: 0 }; };
+const S18b = (f: number): Shot => { const b = B(18, f), u = glide((f - 2262) / 78); return { pos: [b.x + 0.8 - 3 * u, H + 1.4 + 9 * u, -46.4 - 5 * u], look: [b.x + 0.8 + 1.5 * u, H + 1.05 - 0.8 * u, -30 + 10 * u], fov: 40 + 4 * u, roll: 0 }; };
 
 const CAMS: Record<number, Key[]> = {
   1: [{ f: 0, s: S1a }],
@@ -265,7 +267,7 @@ export const DOF: Dof[] = [
   { f: 311, cInf: 14, focus: at(() => B(4, 330), 0.85) },
   { f: 418, cInf: 10 },
   { f: 440, cInf: 0 },
-  { f: 487, cInf: 14, focus: () => [BX0, D0 + 1.45, ZB] },
+  { f: 487, cInf: 6, focus: () => [BX0, D0 + 1.02, ZB] },
   { f: 564, cInf: 7 },                                               // chase: background streaks soft
   { f: 648, cInf: 0 },
   { f: 779, cInf: 11 },
@@ -280,7 +282,8 @@ export const DOF: Dof[] = [
   { f: 1468, cInf: 6 },
   { f: 1620, cInf: 12 },
   { f: 1688, cInf: 14 },
-  { f: 1772, cInf: 5 },
+  { f: 1772, cInf: 6, focus: () => [GARAGE[0] - 0.6, D0 + 0.9, GARAGE[2] - 1.2] },
+  { f: 1886, cInf: 6 },
   { f: 1963, cInf: 15 },
   { f: 2034, cInf: 14 },
   { f: 2209, cInf: 6 },
