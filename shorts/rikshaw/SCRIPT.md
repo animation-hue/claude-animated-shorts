@@ -36,7 +36,7 @@ English, no captions.
 | CALLBACK | 6:00 pm golden hour | tender joy | one soft flicker each |
 | END | 6:00 pm, sea glowing, Queen's Necklace lights coming on | together | two autos side by side along Marine Drive, slow |
 
-## Voice-over (237 words → ≈64 s)
+## Voice-over (243 words → ≈65 s)
 > At half past nine one morning, at a red light on Marine Drive, Bijli Badshah, the fastest little auto in Mumbai, fell in love.
 > Her name was Rani. Pink roof. Jasmine on her mirror. Bijli's headlights went wide. His little engine skipped a beat.
 > Then the light turned green, and she was gone.
