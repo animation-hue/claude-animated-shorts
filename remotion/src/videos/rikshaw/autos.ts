@@ -122,12 +122,10 @@ const genericHead = (p: Pen, x: number, y: number, r: number) => {
 };
 
 /** jasmine garland: white buds on a string, one orange marigold */
-/** a jasmine bud: small white five-point star with a green calyx dot */
+/** a jasmine flower: five soft rounded white petals round a pale yellow-green centre */
 const bud = (p: Pen, x: number, y: number, s: number, rot = 0) => {
-  const pts: P2[] = [];
-  for (let k = 0; k < 10; k++) { const a = rot + (k / 10) * Math.PI * 2 - Math.PI / 2, r = k % 2 ? 4.2 * s : 11 * s; pts.push([x + r * Math.cos(a), y + r * Math.sin(a)]); }
-  p.poly(pts, "#fdfdf6", 2.6 * Math.min(1.4, s));
-  p.ell(x, y, 2.4 * s, 2.4 * s, "#b9d48a", 0);
+  for (let k = 0; k < 5; k++) { const a = rot + (k / 5) * Math.PI * 2; p.ell(x + 6.5 * s * Math.cos(a), y + 6.5 * s * Math.sin(a), 6 * s, 4.4 * s, "#fdfdf6", 2.2 * Math.min(1.4, s), 0, 360, (a * 180) / Math.PI); }
+  p.ell(x, y, 2.6 * s, 2.6 * s, "#dfe7a0", 0);
 };
 const garland = (p: Pen, x0: number, y0: number, x1: number, y1: number, sag: number, sway = 0) => {
   const n = 14;
@@ -138,7 +136,8 @@ const garland = (p: Pen, x0: number, y0: number, x1: number, y1: number, sag: nu
   }
 };
 const flowerAt = (p: Pen, x: number, y: number, s = 1) => {
-  for (const [dx, dy, r] of [[0, 0, 0], [16, -8, 1], [-14, -10, 2], [6, 14, 3], [-10, 12, 4]] as const) bud(p, x + dx * s, y + dy * s, 1.15 * s, r);
+  p.stroke([[x, y - 34 * s], [x + 2 * s, y - 6 * s]], 2.4, "#5d7a3a");                                   // the thread it hangs from
+  for (const [dx, dy, r] of [[0, 0, 0], [13, 8, 1], [-12, 9, 2], [1, 19, 3]] as const) bud(p, x + dx * s, y + dy * s, 1.25 * s, r);
 };
 
 // ---------------- front view ----------------

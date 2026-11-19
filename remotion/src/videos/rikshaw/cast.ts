@@ -347,7 +347,7 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
       const sx = (x0: number) => x0 + (f - 564) * 0.22;
       traffic(out, cam, t, f, [[sx(30), LANE.sea, 1, 1], [sx(48), LANE.e2, 1, 1], [sx(70), LANE.sea, 1, 1], [sx(88), LANE.e2, 1, 1], [60 - (f - 564) * 0.4, LANE.w1, -1, 1]]);
       for (let k = 0; k < 3; k++) puff(out, [B.x - 1.4 - k * 0.6, D0 + 0.35, B.z], ((f * 0.08 + k / 3) % 1));
-      auto(out, cam, t, "bijli", BIJLI, { eye: "soft", mouth: "smile" }, { x: B.x + 5.5 + 0.05 * (f - 564), z: LANE.sea, dx: 1, dz: 0, speed: 1 }, 2);
+      auto(out, cam, t, "bijli", BIJLI, { eye: "soft", mouth: "smile" }, { x: B.x + 3.0 + 0.01 * (f - 564), z: LANE.sea, dx: 1, dz: 0, speed: 1 }, 2);
       for (let k = 0; k < 5; k++) out.fx.push({ key: "speed", cw: 256, ch: 32, draw: (p) => p.stroke([[8, 16], [248, 16]], 7, "rgba(255,255,255,0.85)"), x: B.x - 1.8 - 0.5 * k, y: D0 + 0.4 + 0.28 * k, z: B.z + 0.2, w: 1.4 + 0.3 * (k % 2), h: 0.08 });
       break;
     }
@@ -402,7 +402,7 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
       }
       if (id >= 15) {
         const gk = id === 15 ? doorGold(f) : 1;
-        for (let k = 0; k < 3; k++) out.fx.push({ key: "ray", cw: 128, ch: 512, draw: rayCard, x: GARAGE[0] - 1.6 + 1.6 * k, y: D0 + 2.0, z: GARAGE[2] + 1.6, w: 1.0, h: 4.2, rot: 0.32 - 0.12 * k, soft: true, glow: 0.6 * gk });
+        for (const k of [0, 2]) out.fx.push({ key: "ray", cw: 128, ch: 512, draw: rayCard, x: GARAGE[0] - 2.4 + 2.4 * k, y: D0 + 2.0, z: GARAGE[2] + 1.6, w: 1.0, h: 4.2, rot: 0.32 - 0.12 * k, soft: true, glow: 0.35 * gk }); // rays at the sides, clear of Bijli
         out.fx.push({ key: "pool", cw: 256, ch: 256, draw: glowCard, x: GARAGE[0], y: D0 + 0.03, z: GARAGE[2] + 1.0, w: 5.5 * gk + 0.01, h: 4.5 * gk + 0.01, flat: true, soft: true, glow: 0.4 * gk });
       }
       if (id === 17) {

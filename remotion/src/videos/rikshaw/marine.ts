@@ -26,7 +26,7 @@ const inTheWay = (x0: number, x1: number, y0: number, y1: number, z0: number, z1
 const asphalt = () => ctex("rkAsphalt", 1024, 1024, (g, r) => {
   g.fillStyle = "#77716a"; g.fillRect(0, 0, 1024, 1024);
   for (let i = 0; i < 900; i++) { g.fillStyle = r() < 0.5 ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.07)"; g.fillRect(r() * 1024, r() * 1024, 2 + r() * 5, 2 + r() * 5); }
-  g.fillStyle = "rgba(30,28,36,0.25)"; for (let i = 0; i < 6; i++) { g.beginPath(); g.ellipse(r() * 1024, r() * 1024, 60 + r() * 90, 20 + r() * 30, r() * 3, 0, 7); g.fill(); }
+  // (no dark tar patches: from above they read as shadows with no caster)
 });
 const paving = () => ctex("rkPaving", 512, 512, (g, r) => {
   g.fillStyle = "#d9d2c4"; g.fillRect(0, 0, 512, 512);
@@ -126,7 +126,7 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
   const road = lam("rkRoad", () => ({ map: asphalt() })), pave = lam("rkPave", () => ({ map: paving() }));
   for (const m of [road, pave]) if (m.map) { m.map.wrapS = m.map.wrapT = THREE.RepeatWrapping; m.map.anisotropy = 16; }
   const white = lam("rkLine", () => ({ color: "#f1ede2" })), kerb = lam("rkKerb", () => ({ color: "#bdb6aa" }));
-  const wallM = lam("rkSeaWall", () => ({ color: "#a59d90" })), grass = lam("rkGrass", () => ({ color: "#7fb35a" })), plaza = lam("rkPlaza", () => ({ color: "#c4baa8" }));
+  const wallM = lam("rkSeaWall", () => ({ color: "#a59d90" })), grass = lam("rkGrass", () => ({ color: "#7fb35a" })), plaza = lam("rkPlaza", () => ({ color: "#a9a49c" }));
   const XA = -420, XB = 520;
   const up = (x0: number, x1: number, z0: number, z1: number, m: THREE.Material, dy = 0, tile = 6) => {
     const g = new THREE.BufferGeometry(), y = D0 + dy;
@@ -140,7 +140,7 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
   up(XA, XB, -34, Z_WALL, pave, 0.15, 3);                                    // promenade (raised kerb)
   up(XA, XB, -48, -34, road, 0, 10);                                          // road
   up(XA, XB, -51, -48, pave, 0.15, 3);                                        // city footpath
-  up(XA, XB, -400, -51, plaza, -0.02, 20);                                     // city ground behind the frontage (paved)
+  up(XA - 900, XB + 900, -1200, -51, plaza, -0.02, 20);                       // city ground behind the frontage (paved, to the horizon)
   b.add(boxGeo(V(XA, D0, -34.1), V(XB, D0 + 0.15, -33.9)), kerb); b.add(boxGeo(V(XA, D0, -48.1), V(XB, D0 + 0.15, -47.9)), kerb);
   // sea wall + parapet + tetrapods below
   const wg = new THREE.BufferGeometry();
@@ -162,6 +162,14 @@ export const buildMarine = (root: THREE.Object3D, rays: Ray[]): Marine => {
     if (!nearRound && !nearGarage) deco(b, cx, -51.5, w, 12, h, Math.floor(r() * 6));
     x += w + (r() < 0.25 ? 3 : 0.4);
   }
+  // the city behind: two more rows of taller blocks, and a ring of blocks round the roundabout, so no view ends in a void
+  for (const [zf, hs] of [[-80, [18, 22, 26, 30]], [-112, [24, 30, 36, 42]]] as const)
+    for (let x = XA - 200; x < XB + 300;) {
+      const w = [14, 16, 18][Math.floor(r() * 3)], h = hs[Math.floor(r() * 4)], cx = x + w / 2;
+      if (!(Math.abs(cx - ROUND[0]) < 30 && zf > -100) && Math.abs(cx - GARAGE[0]) > 14) deco(b, cx, zf, w, 14, h, Math.floor(r() * 6));
+      x += w + 2 + r() * 4;
+    }
+  for (const dx of [-26, -8, 10, 28]) deco(b, ROUND[0] + dx, ROUND[2] - 20, 14, 12, 16 + (dx % 3 + 3) * 2, Math.floor(r() * 6));
   // palms on the promenade, between the lamps
   for (let x = XA + 12; x < XB; x += 24) { const px = x + r() * 3; if (px > 10 && px < 50) continue; palm(b, px, -32.3, 7 + r() * 2.5, x * 0.37); } // keep the ending's frame clear
   // lamp posts: promenade (the necklace) + median; heads are separate emissive meshes

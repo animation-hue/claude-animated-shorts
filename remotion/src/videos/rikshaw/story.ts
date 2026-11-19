@@ -165,7 +165,7 @@ const S5b = (f: number) => dolly([1.0, H + 1.6, -31.2], [-1.0, H + 0.9, -38], pu
 // 6: Natraj behind the windscreen pulls his goggles down
 const S6a = (f: number) => dolly([-0.6, H + 1.2, ZB + 0.15], [BX0, H + 1.08, ZB], pushK(f, 487, 0.0025, 0.006, 25), { fov: 38, roll: -0.03 });
 // 7: chase, tracking alongside from the promenade; whip on "corner"
-const S7a = (f: number) => { const b = B(7, f); return { pos: [b.x + 2.2, H + 1.7, -31.2] as V3, look: [b.x + 0.4, H + 0.9, b.z] as V3, fov: 46, roll: 0.03 }; };
+const S7a = (f: number) => { const b = B(7, f); return { pos: [b.x + 1.5, H + 1.15, -45.4] as V3, look: [b.x + 1.5, H + 0.95, -37] as V3, fov: 54, roll: 0.03 }; }; // from the city side: Badshah, Bijli just ahead, the sea behind
 const S7b = (f: number) => { const b = B(7, f); return { pos: [b.x + 9, H + 1.2, LANE.e2 + 0.5] as V3, look: [b.x, H + 0.9, b.z] as V3, fov: 40, roll: -0.04 }; };
 // 8: the roundabout from above, then low among the identical autos
 const S8a = (f: number) => dolly([ROUND[0] + 22, 29, ROUND[2] + 22], [ROUND[0], H, ROUND[2]], pushK(f, 648, 0.0025), { fov: 46 });
