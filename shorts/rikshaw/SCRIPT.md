@@ -30,14 +30,14 @@ English, no captions.
 | LOSE | morning | panic | green light, Gulabi glides away |
 | CHASE | late morning | comic determination | Natraj pulls his goggles down, toothpick flips; the roundabout of 40 identical autos |
 | SEARCH ×3 | noon glare → hazy afternoon | hope, then sinking | grandma auto winks; pink umbrella; a pink roof that drives away; Bijli's lids droop |
-| HOPE | 5:20 pm, warm light | heart leaps | jasmine petals drift past; Rani across the road |
+| HOPE | 5:20 pm, warm light | heart leaps | jasmine petals drift past; Gulabi across the road |
 | FALL | 5:20 pm | the want trips him | eyes only on her… BOING, the lamp post; stars |
 | LOW POINT | 5:40 pm, cool blue garage, one bulb | alone | taped headlight; Happy Singh's smile fades too |
 | MAGIC | 5:55 pm, the garage door glows gold | wonder | Gulabi in the doorway, soft honk; jasmine flower on his mirror |
 | CALLBACK | 6:00 pm golden hour | tender joy | one soft flicker each |
 | END | 6:00 pm, sea glowing, Queen's Necklace lights coming on | together | two autos side by side along Marine Drive, slow |
 
-## Voice-over (243 words → ≈65 s)
+## Voice-over (244 words → ≈65 s)
 > At half past nine one morning, at a red light on Marine Drive, Bijli Badshah, the fastest little auto in Mumbai, fell in love.
 > Her name was Gulabi Rani. Pink roof. Jasmine on her mirror. Bijli's headlights went wide. His little engine skipped a beat.
 > Then the light turned green, and she was gone.
