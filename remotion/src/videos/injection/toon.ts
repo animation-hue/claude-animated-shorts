@@ -67,7 +67,7 @@ export const soldier = (v = 0, extra: Partial<Outfit> = {}): Outfit => {
 // ---- Injection Ka Khauf cast (our own versions) ----
 export const PATIENT: Outfit = { jacket: "#f4f2ec", pants: "#d23b3b", boots: "#e8b48f", hat: "hair", hair: "#1c1a1f", spiky: "#1c1a1f", skin: "#f1c19a" };
 export const DOCTOR: Outfit = { jacket: "#fbfbf8", pants: "#5d7c8f", boots: "#2a2a30", skin: "#d8a3ad", tie: "#3fb0c9", stethoscope: true, buttons: "#c9ccd2", build: "stout" };
-export const FATHER: Outfit = { jacket: "#9a9a9e", pants: "#2a2a30", boots: "#2a201a", hat: "hair", hair: "#2a201a", skin: "#d39a78", beard: "#241c1a", moustache: "#241c1a", build: "stout" };
+export const FATHER: Outfit = { jacket: "#9a9a9e", pants: "#2a2a30", boots: "#2a201a", hat: "hair", hair: "#2a201a", skin: "#d39a78", beard: "#5a3a28", moustache: "#3a261c", build: "stout" };
 export const HELPER: Outfit = { jacket: "#4fb3b0", pants: "#4fb3b0", boots: "#f4f2ec", hat: "hair", hair: "#26232b", spiky: "#26232b", skin: "#b9a6b5" };
 
 // ---- the Rikshaw Love people ----

@@ -81,7 +81,7 @@ const frame = (s: ShotDef, f: number): Cam => {
     case "cu": { const off: V3 = lying ? [0.45 * side, 1.35, -1.6] : [0.4 * side, -0.04, -2.0]; return { pos: add(H, off.map((v) => v * creep) as V3), look: H, fov: 36, roll: dutch }; }
     case "ms": return lying ? { pos: add(H, [0.9 * side * creep, 1.2, -2.9 * creep]), look: add(H, [0.35, -0.1, 0]), fov: 40, roll: dutch * 0.6 }
       : { pos: add(H, [0.8 * side * creep, -0.2, -3.2 * creep]), look: add(H, [0, -0.35, 0]), fov: 40, roll: dutch * 0.6 };
-    case "low": return { pos: add(H, [0.6 * side, -1.1, -2.3 * creep]), look: add(H, [0, -0.05, 0]), fov: 46, roll: dutch * 1.4 };
+    case "low": return { pos: add(H, [0.6 * side, (s.subj === "D" || s.subj === "H") && phaseOf(s.id) !== "carry" ? -0.45 : -1.1, -2.3 * creep]), look: add(H, [0, -0.05, 0]), fov: 46, roll: dutch * 1.4 };
     case "two": { const m = lerp(H, W, 0.5), lo = H[1] < 1.2 || W[1] < 1.2; return { pos: add(m, [1.1 * side, lo ? 1.05 : 0.2, -3.6 * creep]), look: add(m, [0, -0.2, 0]), fov: 44, roll: dutch }; }
     case "ots": { const d: V3 = [W[0] - H[0], 0, W[2] - H[2]], n = Math.hypot(d[0], d[2]) || 1;
       const hi = lying ? 0.75 : 0.12; // over a lying patient: look down past his body, not through it
@@ -92,7 +92,7 @@ const frame = (s: ShotDef, f: number): Cam => {
     case "insButt": { const hip: V3 = [0.18, 0.9, 0]; return { pos: add(hip, [0.45, 0.8 * creep, -1.0 * creep]), look: hip, fov: 40, roll: -0.18 }; }
     case "hold": { const m = lerp(MARK.PH, headOf(s.with ?? "H", s.id), 0.4); return { pos: add(m, [0.9 * side, 1.0, -2.6 * creep]), look: m, fov: 44, roll: dutch }; }
     case "carry": { const m = lerp(headOf("F", s.id), headOf("P", s.id), 0.4); return { pos: add(m, [0.5 * side, -0.08, -2.3 * creep]), look: add(m, [0, -0.12, 0]), fov: 44, roll: dutch }; }
-    default: { const P = headOf("P", s.id); return { pos: add(P, [0.2, -0.1, -0.85 * creep]), look: P, fov: 36, roll: 0.05 }; }
+    default: { const m = lerp(headOf("F", s.id), headOf("P", s.id), 0.5); return { pos: add(m, [0.3, -0.05, -2.6 + 0.4 * u]), look: add(m, [0, -0.1, 0]), fov: 42, roll: 0.04 }; }
   }
 };
 const KICKS: number[] = [INJ_A + 18, CUTS[13] + 2, CUTS[67] + 2];
