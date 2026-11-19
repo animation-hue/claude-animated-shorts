@@ -4,15 +4,9 @@
 // the sun, painted crescent in the drawing); standing ones get a soft multiply contact blob. Effects are unlit cards.
 // Cards, effects and blobs live on the NOINK layer so the world ink pass never outlines their quads.
 import * as THREE from "three";
-import {
-  Pen, bodyFront, bodySide, KID, fxSplash, fxRing, fxShadow, fxContact, SAILOR, ADMIRAL, KING, BUILDER, JUDGE, TOURIST, folk1628,
-  Outfit, Expr, FrontOpts, SideOpts,
-} from "./toon";
-import {
-  FPS, D0, SHOTS, V3, smooth, clamp01, ShipPose, crewSide, RUNS, RUN_F, STOP_F, ADMIRAL_AT, KING_AT, BUILDER_AT, TABLE_AT, STOOL_AT, KING_INQ,
-  BOAT_AT, SINK_X, COURSE_Z,
-} from "./story";
-import { deckH, halfB, PORT_X, PORT_ROWS, MASTS, Ship } from "./ship";
+import { Pen, bodyFront, bodySide, KID, fxRing, fxShadow, fxContact, fxStars, fxBurst, NATRAJ, HAPPY_SINGH, UMBRELLA_LADY, folk1628, Outfit, Expr, FrontOpts, SideOpts } from "./toon";
+import { FPS, D0, SHOTS, V3, smooth, clamp01, badshahAt, bijliAt, AutoPos, LANE, ROUND, GARAGE, GRANDMA_AT, UMBRELLA_AT, HAPPY_AT, CRASH, CRASH_F, FLOWER_F, BIJLI_IN, badshahGlow, bijliGlow, honk } from "./story";
+import { autoFront, autoSide, AutoLook, AutoState, BADSHAH, BIJLI, GRANDMA, PLAIN } from "./autos";
 import { NOINK } from "./ink";
 import { cardShade, blobMaterial, CARD_K } from "./cardshade";
 
@@ -85,7 +79,7 @@ export class Actor {
 }
 /** unlit effect card: hard cut-out (ink drawings), soft see-through (dust, mist) or a multiply ground blob */
 export class Fx {
-  mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; soft: THREE.MeshBasicMaterial; blob: THREE.MeshBasicMaterial; r: Req | null = null;
+  mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; soft: THREE.MeshBasicMaterial; blob: THREE.MeshBasicMaterial; r: Req | null = null; glow = 0;
   constructor(parent: THREE.Object3D) {
     this.mat = new THREE.MeshBasicMaterial({ map: blank, alphaTest: 0.5, side: THREE.DoubleSide });
     this.mat.alphaToCoverage = false; // A2C + MSAA left 1 px sky-depth seams on blurred far cards (POST)
@@ -104,24 +98,22 @@ export class Fx {
       if (t.generateMipmaps) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; t.needsUpdate = true; }
       this.blob.map = t; this.mesh.material = this.blob; this.mesh.renderOrder = 0.5;
     }
-    else { this.mat.map = t; this.soft.map = t; this.mesh.renderOrder = 0; }
+    else { this.mat.map = t; this.soft.map = t; this.mesh.renderOrder = this.glow ? 2 : 0; this.mat.color.setScalar(1 + this.glow); this.soft.color.setScalar(1 + this.glow); }
   }
 }
 
 // ---------------- placements ----------------
 export type Place = {
   key: string; draw: (p: Pen) => void; x: number; y: number; z: number;
-  scale?: number; mirror?: boolean; yaw?: number; geo?: "body" | "swing"; roll?: number; size?: [number, number, number];
+  scale?: number; mirror?: boolean; yaw?: number; geo?: "body" | "autoF" | "autoS"; roll?: number; size?: [number, number, number];
 };
-export type FxPlace = { key: string; cw: number; ch: number; draw: (p: Pen) => void; x: number; y: number; z: number; w: number; h: number; flat?: boolean; rot?: number; soft?: boolean };
+export type FxPlace = { key: string; cw: number; ch: number; draw: (p: Pen) => void; x: number; y: number; z: number; w: number; h: number; flat?: boolean; rot?: number; soft?: boolean; glow?: number };
 /** sun = world direction TOWARD the sun (optional: when absent the scene's shadow-casting light is used) */
 export type CamInfo = { pos: THREE.Vector3; right: THREE.Vector3; fwd?: THREE.Vector3; sun?: THREE.Vector3 };
 
 const hh = (i: number, s = 0) => { const v = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); };
 const q = (v: number, n = 120) => Math.round(v * n) / n;
-const CREW = [0, 1, 2, 3, 4, 5, 6, 7].map((v) => SAILOR(v));
 const FOLK = [0, 1, 2, 3, 4, 5].map((v) => folk1628(v));
-const VISIT = [0, 1, 2, 3, 4, 5, 6].map((v) => TOURIST(v));
 /** head-shape seed: 7 shapes, so marching soldiers in step still share canvases */
 const seedOf = (i: number) => ((i * 5 + 3) % 7) + 1;
 /** drawing resolution by distance: [canvas w, h, scale from the 600 x 1000 design]; sized for the 1440 x 2560 final */
@@ -219,255 +211,209 @@ const blob = (out: Stage, x: number, y: number, z: number, sc = 1, k = 1) => {
     w: 0.52 * sc, h: 0.4 * sc, flat: true, rot });
 };
 
-// ---------------- crowd by shot ----------------
+// ---------------- Rikshaw Love: autos + people by shot ----------------
 export type Stage = { places: Place[]; fx: FxPlace[] };
-export const GANGWAY_X = 2.0;
+export const SUA = 1.85 / 800; // metres per auto design unit: front card 600 x 800 = 1.39 x 1.85 m
 const L = LEAD;
-const wv = new THREE.Vector3();
-/** a point on the ship's deck (local x, z) in world space under the current pose */
-const onDeck = (ship: Ship, lx: number, lz: number, up = 0) => ship.toWorld(lx, deckH(lx) + up, lz, wv.clone());
-/** screen roll for a card standing on something heeled by `heel` about an axis along world direction (ax, az) */
-const rollOn = (cam: CamInfo, heel: number, ax: number, az: number) => {
-  const fw = cam.fwd; if (!fw) return 0;
-  return -heel * (fw.x * ax + fw.z * az);
-};
-const shipAxis = (sp: ShipPose): [number, number] => [Math.cos(sp.yaw), -Math.sin(sp.yaw)];
+const F_ = (t: number) => Math.round(t * FPS);
 
-/** everyone standing still somewhere: front view, contact shadow, blinks */
-const stander = (out: Stage, cam: CamInfo, t: number, i: number, o: Outfit, okey: string, x: number, y: number, z: number, fo: FrontOpts, scale = 1, roll = 0, shadow = true) => {
-  const pl = person(cam, { i, o, okey }, x, y, z, { side: false, mirror: false }, { mode: "stand", blink: lidAt(t, i), ...fo }, {}, scale);
-  out.places.push(roll ? { ...pl, roll } : pl);
-  if (shadow) blob(out, x, y, z, scale);
+/** auto card size by distance [canvas w, h, scale from the design] for front (600 x 800) or side (900 x 700) */
+const autoTier = (d: number, side: boolean): [number, number, number] => {
+  const k = d < 4 ? 2.0 : d < 9 ? 1.0 : d < 25 ? 0.5 : 0.25;
+  return side ? [Math.round(900 * k), Math.round(700 * k), k] : [Math.round(600 * k), Math.round(800 * k), k];
 };
+const skey = (s: AutoState) => JSON.stringify(s, (_k, v) => (typeof v === "number" ? q(v, 60) : v));
 
-/** a handful of crew on deck (sailing shots) */
-const crewOnDeck = (out: Stage, cam: CamInfo, t: number, sp: ShipPose, ship: Ship, n: number, expr: (i: number) => Expr) => {
-  const [ax, az] = shipAxis(sp);
+/** one auto: front card when the lens is ahead of it, side card otherwise (mirrored to its heading) */
+const auto = (out: Stage, cam: CamInfo, t: number, name: string, look: AutoLook, st: AutoState, p: AutoPos, i: number, shadow = true) => {
+  const v = viewOf(cam, p.x, p.z, p.dx, p.dz);
+  const d = cam.pos.distanceTo(tmp.set(p.x, D0 + 0.9, p.z));
+  // engine idle: a 1-px shudder; moving: bounce
+  const idle = (Math.sin(t * 47 + i) > 0 ? 1 : -1) * (p.speed > 0 ? 3 : 1.2);
+  const lid = Math.max(st.lid ?? 0, (st.eye ?? "open") === "open" || st.eye === "wide" || st.eye === "soft" ? lidAt(t, i + 500) : 0);
+  const s2: AutoState = { ...st, lid, shiver: (st.shiver ?? 0) + idle, mirror: (st.mirror ?? 0) + 0.05 * Math.sin(t * 3 + i) };
+  const side = v.side;
+  const [w, h, k] = autoTier(d, side);
+  out.places.push({
+    key: `A|${name}|${side ? "S" : "F"}|${skey(s2)}`, x: p.x, y: D0, z: p.z, geo: side ? "autoS" : "autoF", size: [w, h, k],
+    mirror: side && v.mirror, roll: st.tilt ? 0 : 0,
+    draw: (pen) => (side ? autoSide(pen, look, s2) : autoFront(pen, look, s2)),
+  });
+  if (shadow) blob(out, p.x, D0, p.z, 2.6, 0.9);
+};
+/** world position of a front card's right / left headlight (canvas x 364 / 236, y 532) as seen from the lens */
+const headlightPos = (cam: CamInfo, p: AutoPos, side: number): V3 => {
+  const dx = (side > 0 ? 64 : -64) * SUA, dy = (780 - 532) * SUA;
+  const toCam = tmp.set(cam.pos.x - p.x, 0, cam.pos.z - p.z).normalize();
+  const rx = toCam.z, rz = -toCam.x; // card right as seen from the lens
+  return [p.x - rx * dx, D0 + dy, p.z - rz * dx + 0.0];
+};
+const glowCard = (p: Pen) => {
+  const g = p.g, gr = g.createRadialGradient(128, 128, 4, 128, 128, 128);
+  gr.addColorStop(0, "rgba(255,248,215,1)"); gr.addColorStop(0.3, "rgba(255,226,140,0.75)"); gr.addColorStop(1, "rgba(255,200,90,0)");
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+};
+const glow = (out: Stage, cam: CamInfo, at: V3, k: number, size = 0.9) => {
+  if (k < 0.02) return;
+  const to = tmp.set(cam.pos.x - at[0], cam.pos.y - at[1], cam.pos.z - at[2]).normalize();
+  out.fx.push({ key: "glow", cw: 256, ch: 256, draw: glowCard, x: at[0] + to.x * 0.15, y: at[1] + to.y * 0.15, z: at[2] + to.z * 0.15, w: size * (0.6 + 0.6 * k), h: size * (0.6 + 0.6 * k), soft: true, glow: 2.5 * k });
+};
+const puff = (out: Stage, at: V3, u: number) => {
+  if (u < 0 || u >= 1) return;
+  out.fx.push({ key: `puff${q(u, 20)}`, cw: 256, ch: 256, draw: (p) => { for (let k = 0; k < 4; k++) p.ell(128 + 30 * Math.cos(k * 1.7) * (0.5 + u), 128 + 22 * Math.sin(k * 1.7) * (0.5 + u), 44 * (1 - 0.5 * u), 38 * (1 - 0.5 * u), "#cfcac4", 5); },
+    x: at[0], y: at[1] + 0.4 * u, z: at[2], w: 0.7 + 0.6 * u, h: 0.7 + 0.6 * u });
+};
+const petals = (out: Stage, t: number, base: V3, n = 9) => {
   for (let i = 0; i < n; i++) {
-    const lx = -9 + (i / Math.max(1, n - 1)) * 19 + (hh(i, 3) - 0.5) * 1.5, lz = (i % 2 ? 1 : -1) * (1.3 + hh(i, 4) * 2.0); // clear of the masts on the centre line
-    const p = onDeck(ship, lx, lz);
-    stander(out, cam, t, i, CREW[i % 8], `c${i % 8}`, p.x, p.y, p.z, { expr: expr(i), wave: undefined }, 1, rollOn(cam, sp.heel, ax, az), false);
+    const u = ((t * 0.35 + hh(i, 3)) % 1);
+    out.fx.push({ key: "petal", cw: 96, ch: 96, draw: (p) => { p.ell(48, 48, 30, 20, "#fbfbf3", 4, 0, 360, 30); p.ell(48, 48, 7, 7, "#f2c94c", 0); },
+      x: base[0] - 6 + 12 * u + 2 * Math.sin(i), y: base[1] + 0.6 + 1.6 * Math.sin(u * Math.PI) + 0.3 * hh(i), z: base[2] + (hh(i, 5) - 0.5) * 3, w: 0.18, h: 0.18, rot: u * 6 + i });
   }
 };
 
-/** the thirty of the stability test: lined at the port rail, then running across and back, stopped on the third run */
-const testCrew = (out: Stage, cam: CamInfo, t: number, f: number, sp: ShipPose, ship: Ship) => {
-  const [ax, az] = shipAxis(sp);
-  for (let i = 0; i < 30; i++) {
-    const col = i % 10, row = Math.floor(i / 10);
-    const lx = -8.4 + col * 1.85 + (hh(i) - 0.5) * 0.5;
-    const lag = (hh(i, 2) * 6 + row * 2) | 0; // each one leaves a few frames apart
-    const side = crewSide(f - lag), sidePrev = crewSide(f - lag - 2);
-    const lz = side * (3.15 - row * 0.85) + (hh(i, 5) - 0.5) * 0.3;
-    const p = onDeck(ship, lx, lz);
-    const moving = Math.abs(side - sidePrev) > 0.005;
-    const dir = Math.sign(side - sidePrev) || 1;
-    const wdx = Math.sin(sp.yaw) * dir, wdz = Math.cos(sp.yaw) * dir; // world direction of the run (local +-z)
-    const stage3 = f >= RUNS[2], lurch = f >= 800 && f < 860;
-    const expr: Expr = lurch ? (i % 3 ? "shock" : "nervous") : f >= STOP_F - 2 ? "nervous" : stage3 ? (i % 2 ? "nervous" : "grin") : i % 3 === 0 ? "laugh" : "grin";
-    const roll = rollOn(cam, sp.heel, ax, az);
-    if (moving) {
-      const view = viewOf(cam, p.x, p.z, wdx, wdz);
-      const phase = q(((f - lag) / 13 + hh(i, 6)) % 1, 60);
-      const so: SideOpts = { mode: "march", phase, expr, blink: 0, stomp: 1.4, stride: 1.25 * view.fs };
-      const fo: FrontOpts = { mode: "march", phase, expr, blink: 0, lift: 80 };
-      const pl = person(cam, { i, o: CREW[i % 8], okey: `c${i % 8}` }, p.x, p.y, p.z, view, fo, so);
-      out.places.push({ ...pl, roll });
-    } else {
-      const look = side < 0 ? 1 : -1;
-      stander(out, cam, t, i, CREW[i % 8], `c${i % 8}`, p.x, p.y, p.z, { expr, look, headTilt: lurch ? (hh(i, 7) - 0.5) * 0.4 : 0 }, 1, roll, false);
+/** Badshah's face for the beat at frame f */
+const badshahState = (id: number, f: number): AutoState => {
+  const t = f / FPS, g: "up" | "down" = f >= 540 && id < 9 ? "down" : id >= 6 && id <= 8 ? "down" : "up";
+  const base: AutoState = { goggles: g, toothpick: f >= 545 && id <= 8 ? 1.1 : 0.25 };
+  switch (id) {
+    case 1: return { ...base, eye: "open", mouth: "flat", look: 0.3 };
+    case 2: return f < 186 - 2 ? { ...base, eye: "open", mouth: "flat", look: -0.2 } : { ...base, eye: "heart", mouth: "smile" };
+    case 3: return { ...base, eye: "heart", mouth: "smile" };
+    case 4: {
+      if (f < 336) return { ...base, eye: "open", mouth: "shy", look: -0.7 };
+      const beat = f >= 389 && f < 405;
+      return { ...base, eye: "wide", mouth: beat ? "wobble" : "o", look: -0.5, shiver: beat ? 10 * Math.sin(f * 2.4) : 0 };
     }
+    case 5: return f < 470 ? { ...base, eye: "wide", mouth: "o", look: 0.6 } : { ...base, eye: "droop", mouth: "frown", look: 0.8 };
+    case 6: return { ...base, eye: f < 545 ? "droop" : "squint", mouth: f < 545 ? "frown" : "grit" };
+    case 7: return { ...base, eye: "squint", mouth: "grit" };
+    case 8: return { ...base, eye: f < 740 ? "squint" : "dazed", mouth: f < 740 ? "grit" : "wobble", tilt: f < 740 ? 0 : 0.06 * Math.sin(f * 0.3) };
+    case 9: return { ...base, eye: f < 800 ? "dazed" : "open", mouth: "frown", look: Math.sin(t * 2.2) };
+    case 10: return f < 878 ? { ...base, eye: "droop", mouth: "frown" } : { ...base, eye: "wide", mouth: "smile", look: 0.7 };
+    case 11: { const k = clamp01((f - 1041) / 72); return { ...base, eye: "droop", mouth: "frown", lid: 0.55 + 0.3 * k, tilt: -0.02 * k }; }
+    case 12: return f < 1219 ? { ...base, eye: "droop", mouth: "flat" } : f < 1254 ? { ...base, eye: "closed", mouth: "smile" } : { ...base, eye: "wide", mouth: "o", look: 0.6 };
+    case 13: {
+      if (f < CRASH_F) return { ...base, eye: "heart", mouth: "grin" };
+      const u = Math.min(1, (f - CRASH_F) / 40);
+      return { ...base, eye: "dazed", mouth: "wobble", tilt: 0.16 * (1 - u) * Math.cos((f - CRASH_F) * 0.5) };
+    }
+    case 14: return { ...base, eye: "droop", mouth: "frown", tape: true, lid: f > 1700 ? 0.7 : 0.6 };
+    case 15: return f < 1819 ? { ...base, eye: "droop", mouth: "frown", tape: true } : f < honk - 1 ? { ...base, eye: "open", mouth: "flat", tape: true, look: 0.5 }
+      : f < BIJLI_IN + 8 ? { ...base, eye: "wide", mouth: "o", tape: true, look: 0.5 } : { ...base, eye: "soft", mouth: "shy", tape: true, look: 0.3 };
+    case 16: return { ...base, eye: "soft", mouth: "shy", tape: true, flower: f >= FLOWER_F };
+    case 17: return { ...base, eye: "soft", mouth: f < 2120 ? "shy" : "smile", tape: true, flower: true, glow: [0, badshahGlow(f)] };
+    case 18: return { ...base, eye: "soft", mouth: "smile", tape: true, flower: true };
+    default: return base;
   }
-  // the admiral watching from the quarterdeck rail
-  const a = onDeck(ship, ADMIRAL_AT[0], ADMIRAL_AT[2]);
-  const aexpr: Expr = f < RUNS[1] ? "stern" : f < STOP_F - 2 ? "nervous" : f < 860 ? "shock" : "nervous";
-  stander(out, cam, t, 90, ADMIRAL, "adm", a.x, a.y, a.z, { expr: aexpr, wave: f >= STOP_F - 2 && f < STOP_F + 30 ? 0.9 : undefined }, 1, rollOn(cam, sp.heel, ax, az), false);
+};
+const bijliState = (id: number, f: number): AutoState => {
+  switch (id) {
+    case 2: case 3: return { eye: "soft", mouth: "smile", look: f > 280 && f < 300 ? -0.6 : 0, mirror: 0.15 * Math.sin(f * 0.12) };
+    case 4: return { eye: "soft", mouth: "smile", look: -0.5 };
+    case 5: return { eye: "soft", mouth: "smile", look: f > 444 && f < 468 ? -0.9 : 0 };      // a glance back at the green light
+    case 12: case 13: return { eye: "soft", mouth: "smile", look: -0.3 };
+    case 15: return { eye: "soft", mouth: "shy" };
+    case 16: return { eye: "soft", mouth: "smile" };
+    case 17: return { eye: "soft", mouth: "smile", glow: [bijliGlow(f), bijliGlow(f)] };
+    case 18: return { eye: "soft", mouth: "smile", look: -0.4 };
+    default: return { eye: "soft", mouth: "smile" };
+  }
 };
 
-/** cheering quay crowd (near quay, z -31..-35) between x0 and x1 */
-const quayCrowd = (out: Stage, cam: CamInfo, t: number, x0: number, x1: number, n: number, mood: "cheer" | "shock" | "watch", seed = 0) => {
-  for (let i = 0; i < n; i++) {
-    const x = x0 + ((i + 0.5) / n) * (x1 - x0) + (hh(i, 1 + seed) - 0.5) * 1.2, z = -31.0 - hh(i, 2 + seed) * 3.6;
-    const kid = i % 6 === 4, o = kid ? KID : FOLK[i % 6];
-    const cheer = mood === "cheer", hop = kid && cheer ? Math.max(0, Math.sin(t * 7 + i)) * 0.16 : 0;
-    const expr: Expr = mood === "shock" ? (i % 3 ? "shock" : "nervous") : mood === "watch" ? (i % 2 ? "neutral" : "smile_closed") : (["smile", "grin", "laugh", "smile_closed"] as Expr[])[i % 4];
-    const fo: FrontOpts = { mode: "stand", expr, wave: cheer && i % 3 !== 2 ? q(Math.sin(t * 9 + i * 1.3), 30) : undefined, blink: lidAt(t, i + 40) };
-    out.places.push(person(cam, { i: i + 200, o, okey: kid ? "kid" : `f${i % 6}` }, x, D0 + hop, z, { side: false, mirror: false }, fo, {}, kid ? 0.72 : 1));
-    blob(out, x, D0, z, kid ? 0.72 : 1, hop > 0 ? 0.6 : 1);
-  }
-};
-
-/** sailors in the water around the masts (survivors held on to the masts) */
-const swimmers = (out: Stage, cam: CamInfo, t: number, n: number) => {
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2 + hh(i) * 0.6, r = 3.2 + hh(i, 2) * 4.5;
-    const x = SINK_X + 0.5 + Math.cos(a) * r, z = COURSE_Z + Math.sin(a) * r * 0.8, bob = 0.04 * Math.sin(t * 2.2 + i);
-    const expr: Expr = (["dazed", "shock", "pained", "relief"] as Expr[])[i % 4];
-    out.places.push(person(cam, { i, o: CREW[i % 8], okey: `c${i % 8}` }, x, -0.62 + bob, z, { side: false, mirror: false }, { mode: "sit", expr, blink: lidAt(t, i), look: 0 }, {}));
-    const u = ((t + hh(i, 7) * 2) % 2.2) / 2.2;
-    out.fx.push({ key: `ring${q(u, 30)}`, cw: 600, ch: 600, draw: (p) => fxRing(p, q(u, 30)), x, y: 0.03, z, w: 2.0, h: 2.0, flat: true });
-    out.fx.push({ key: `blob|contact|${WATERLINE}`, cw: 128, ch: 128, draw: (p) => fxContact(p, WATERLINE), x, y: 0.034, z, w: 0.7, h: 0.5, flat: true });
-  }
-};
-const WATERLINE = hexOf([0.3, 0.36, 0.52], 1);
-
-// ---- the rowing boat (shot 14): the kid stands up, the boat tips; sits down, it rights itself ----
-const STAND_A = 1405, SIT_A = 1490;
-const boatStand = (f: number) => smooth((f - STAND_A) / 8) * (1 - smooth((f - SIT_A) / 8));
-export const boatRoll = (f: number) => {
-  const up = boatStand(f), grow = smooth((f - 1430) / 46);
-  const tip = up * (0.06 + 0.3 * grow) * Math.sin((f - STAND_A) * 0.16);
-  const settle = f > SIT_A ? 0.2 * Math.exp(-(f - SIT_A) / 14) * Math.cos((f - SIT_A) * 0.2) : 0;
-  return tip + settle;
-};
-const boatKid = (out: Stage, cam: CamInfo, t: number, f: number) => {
-  const roll = boatRoll(f), yaw = 0.25, up = boatStand(f);
-  const ax = Math.cos(yaw), az = -Math.sin(yaw);
-  const standing = up > 0.5;
-  const expr: Expr = !standing ? (f > SIT_A ? "relief" : "smile") : f < 1440 ? "grin" : "shock";
-  const fo: FrontOpts = standing ? { mode: "stand", expr, wave: q(0.9 * Math.sin(f * 0.35), 30), blink: lidAt(t, 5), headTilt: roll * 0.8 }
-    : { mode: "sit", expr, blink: lidAt(t, 5) };
-  const y = standing ? 0.06 : -0.12, lift = y * Math.cos(roll);
-  const pl = person(cam, { i: 5, o: KID, okey: "kid" }, BOAT_AT[0], lift, BOAT_AT[2] + Math.sin(roll) * y, { side: false, mirror: false }, fo, {}, 0.72);
-  out.places.push({ ...pl, roll: rollOn(cam, roll, ax, az) });
-  // ripples round the boat when it rocks
-  const u = (t * 0.7) % 1;
-  out.fx.push({ key: `ring${q(u, 30)}`, cw: 600, ch: 600, draw: (p) => fxRing(p, q(u, 30)), x: BOAT_AT[0], y: 0.03, z: BOAT_AT[2], w: 3.4 * (0.3 + Math.abs(roll) * 2.5), h: 3.4 * (0.3 + Math.abs(roll) * 2.5), flat: true });
-};
-
-// ---- effects ----
-const smokeCloud = (p: Pen, t: number) => {
-  // opaque cut-out puffs (they write depth, so the world ink behind them is hidden), shrinking as they thin out
-  const k = 1 - 0.55 * t * t;
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2, d = 50 + 90 * t, r = (70 + 22 * (i % 3)) * (0.7 + 0.5 * t) * k;
-    p.ell(256 + d * Math.cos(a), 256 + d * 0.6 * Math.sin(a), r, r * 0.82, i % 2 ? "#c9c3ba" : "#dcd6cc", 6);
-  }
-  if (t < 0.3) { // muzzle flash: spiky orange star
-    const R = 150 * (1 - t * 2.5), pts: [number, number][] = [];
-    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, rr2 = i % 2 ? R * 0.42 : R; pts.push([256 + rr2 * Math.cos(a), 256 + rr2 * Math.sin(a)]); }
-    p.poly(pts, "#ff9a2e", 6); p.ell(256, 256, R * 0.3, R * 0.3, "#ffe08a", 0);
-  }
-};
-/** the farewell salute: starboard barrels fire one after another from f1019 */
-const salute = (out: Stage, f: number, ship: Ship) => {
-  PORT_X.forEach((x, i) => {
-    const f0 = 1017 + (PORT_X.length - 1 - i) * 1.2, u = (f - f0) / 26; // bow first: the guns in frame fire on "salute"
-    if (u < 0 || u >= 1) return;
-    const row = PORT_ROWS[i % 2], m = ship.toWorld(x, row.y, halfB(x, row.y) + 2.4 + 2.2 * u, new THREE.Vector3());
-    out.fx.push({ key: `smoke${q(u, 30)}`, cw: 512, ch: 512, draw: (p) => smokeCloud(p, q(u, 30)), x: m.x, y: m.y, z: m.z, w: 3.2 + 2 * u, h: 3.2 + 2 * u });
-  });
-};
-/** the sea pouring in through the open port-side gun ports as she heels */
-const flooding = (out: Stage, f: number, sp: ShipPose, ship: Ship, cam: CamInfo) => {
-  if (sp.heel > -0.3 || sp.sink > 6) return;
-  // a soft curl of sea over the sill of whichever row of open ports is at the water line; the card is placed so the
-  // curl's end (canvas 300, 150 of 400 x 300) lands in the port opening
-  const W = 3.4, H = 2.55, ox = ((300 - 200) / 400) * W, oy = ((150 - 150) / 300) * H;
-  for (const row of PORT_ROWS) PORT_X.forEach((x, i) => {
-    const m = ship.toWorld(x, row.y, -halfB(x, row.y) - 0.1, new THREE.Vector3());
-    if (m.y < -0.4 || m.y > 1.6) return;
-    const u = q(((f * 0.05 + hh(i, 9)) % 1), 24);
-    out.fx.push({ key: `curl${u}`, cw: 400, ch: 300, draw: (p) => waterCurl(p, u), x: m.x - cam.right.x * ox, y: Math.max(0.5, m.y - oy + 0.05), z: m.z - cam.right.z * ox - 1.25, w: W, h: H });
-  });
-};
-const qb = (a: [number, number], c: [number, number], b: [number, number], n = 10) => Array.from({ length: n + 1 }, (_, k) => {
-  const t = k / n, s2 = 1 - t; return [s2 * s2 * a[0] + 2 * s2 * t * c[0] + t * t * b[0], s2 * s2 * a[1] + 2 * s2 * t * c[1] + t * t * b[1]] as [number, number];
-});
-/** soft wavy arc of sea curling up from the surface and down over a sill into the port at (300, 150); foam at the base */
-const waterCurl = (p: Pen, u: number) => {
-  const w = 7 * Math.sin(u * Math.PI * 2), w2 = 7 * Math.cos(u * Math.PI * 2);
-  const outer = [...qb([10, 292], [70, 120 + w], [190, 92 + w2]), ...qb([190, 92 + w2], [285, 82], [306, 150]).slice(1)];
-  const inner = [...qb([284, 160], [262, 128], [205, 132 - w2]), ...qb([205, 132 - w2], [120, 150 + w], [92, 292]).slice(1)];
-  p.poly([...outer, ...inner], "#58bde9", 7);
-  p.stroke(qb([40, 270], [95, 135 + w], [200, 108 + w2], 12), 11, "#a9def7");                  // light along the crest
-  p.stroke(qb([200, 108 + w2], [262, 104], [282, 138], 8), 7, "#e8f7ff");
-  for (let k = 0; k < 6; k++) p.ell(30 + k * 32 + 6 * Math.sin(u * 9 + k), 284 - (k % 2) * 7, 26 - (k % 3) * 4, 13, "#f2fbff", 5); // foam
-  p.ell(298, 146, 9, 7, "#e8f7ff", 4);                                                                   // spill into the port
-};
-/** water streaming off the hull as she is raised (shot 18) */
-const drips = (out: Stage, f: number, sp: ShipPose, ship: Ship) => {
-  if (f < 1862 || sp.sink < 0.5) return;
-  for (let i = 0; i < 9; i++) {
-    const x = -16 + i * 4, m = ship.toWorld(x, 0, halfB(x, 0) + 0.4, new THREE.Vector3());
-    const u = q(((f * 0.05 + hh(i, 4)) % 1), 30);
-    out.fx.push({ key: `splash${u}`, cw: 800, ch: 800, draw: (p) => fxSplash(p, u), x: m.x, y: 0.9, z: Math.max(m.z, COURSE_Z + 3), w: 3.0, h: 3.0 });
-  }
-};
-const candle = (p: Pen, fl: number) => {
-  p.poly([[42, 290], [78, 290], [78, 130], [42, 130]], "#f4efe2", 6);
-  p.ell(60, 100 - 6 * fl, 15 + 3 * fl, 32 + 6 * fl, "#ffb43a", 5);
-  p.ell(60, 108, 7, 14, "#fff0b0", 0);
-};
-const capAlone = (p: Pen) => {
-  p.ell(100, 120, 70, 44, "#5e4b3a", 8, 180, 360);
-  p.poly([[30, 120], [170, 120], [190, 132], [30, 134]], "#4a3c30", 7);
-};
+const traffic = (out: Stage, cam: CamInfo, t: number, f: number, spots: [number, number, number, number][]) =>
+  spots.forEach(([x, z, dx, sp], i) => auto(out, cam, t, `p${i % 3}`, PLAIN(i), { eye: i % 4 === 1 ? "squint" : "open", mouth: "flat", look: Math.sin(t + i) * 0.4 }, { x, z, dx, dz: 0, speed: sp }, 30 + i));
 
 /** everything with a face in shot `id` at time t */
-export const stage = (id: number, t: number, f: number, sp: ShipPose, ship: Ship, cam: CamInfo): Stage => {
+export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => {
   const out: Stage = { places: [], fx: [] };
   const s = SHOTS[id - 1];
   LNAME = s.light;
   findSun(cam, SUN);
+  const B = badshahAt(id, f), J = bijliAt(id, f), bs = badshahState(id, f);
   switch (s.crowd) {
-    case "sail":
-      crewOnDeck(out, cam, t, sp, ship, id === 12 ? 8 : 12, (i) => (id === 12 && f > 1090 ? (i % 2 ? "shock" : "nervous") : i % 3 ? "smile_closed" : "grin"));
-      if (id === 12) flooding(out, f, sp, ship, cam);
-      break;
-    case "masts":
-      if (id === 13 && f >= 1150) swimmers(out, cam, t, 9);
-      if (id === 13) quayCrowd(out, cam, t, SINK_X - 22, SINK_X + 18, 22, "shock", 3);
-      if (id === 2) flooding(out, f, sp, ship, cam);
-      break;
-    case "king": {
-      stander(out, cam, t, 80, KING, "king", KING_AT[0], KING_AT[1], KING_AT[2], { expr: t < 241 / FPS - L ? "smile_closed" : "stern", facing: 1 });
-      for (const [k, dx] of [[81, -2.6], [82, 2.4]] as const) stander(out, cam, t, k, FOLK[k % 6], `f${k % 6}`, KING_AT[0] + dx, D0, KING_AT[2] - 1.2, { expr: "neutral" });
+    case "signal": {
+      const go = f >= 470;
+      const roll = (x0: number) => (go ? x0 + Math.max(0, f - 470) * 0.12 : x0);
+      traffic(out, cam, t, f, [[roll(-9.6), LANE.sea, 1, go ? 1 : 0], [roll(-15.8), LANE.sea, 1, go ? 1 : 0], [roll(-9.4), LANE.e2, 1, go ? 1 : 0], [roll(-15.6), LANE.e2, 1, go ? 1 : 0], [roll(-21.5), LANE.e2, 1, go ? 1 : 0],
+        [12 - 0.35 * (f % 400), LANE.w1, -1, 1], [40 - 0.3 * (f % 500), LANE.w2, -1, 1]]);
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
+      if (J) auto(out, cam, t, "bijli", BIJLI, bijliState(id, f), J, 2);
+      if (id === 4) puff(out, [B.x - 1.0, D0 + 0.5, B.z + 0.4], (f - 393) / 20);
       break;
     }
-    case "builder":
-      stander(out, cam, t, 70, BUILDER, "bld", BUILDER_AT[0], BUILDER_AT[1], BUILDER_AT[2], { expr: id === 3 ? "neutral" : t < 442 / FPS - L ? "neutral" : "nervous", headTilt: id === 6 ? 0.12 * Math.sin(t * 2.4) : 0, prop: ["hammer", 1] });
-      if (id === 3) quayCrowd(out, cam, t, -16, 14, 12, "watch", 1);
-      break;
-    case "admiral": {
-      const a = onDeck(ship, ADMIRAL_AT[0], ADMIRAL_AT[2]);
-      const expr: Expr = id === 7 ? (t < 553 / FPS - L ? "stern" : "neutral") : t < 895 / FPS ? "nervous" : "dazed";
-      stander(out, cam, t, 90, ADMIRAL, "adm", a.x, a.y, a.z, { expr, facing: -1 }, 1, 0, false);
+    case "chase": {
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
+      const sx = (x0: number) => x0 + (f - 564) * 0.22;
+      traffic(out, cam, t, f, [[sx(30), LANE.sea, 1, 1], [sx(48), LANE.e2, 1, 1], [sx(70), LANE.sea, 1, 1], [sx(88), LANE.e2, 1, 1], [60 - (f - 564) * 0.4, LANE.w1, -1, 1]]);
+      for (let k = 0; k < 3; k++) puff(out, [B.x - 1.4 - k * 0.6, D0 + 0.35, B.z], ((f * 0.08 + k / 3) % 1));
       break;
     }
-    case "test": testCrew(out, cam, t, f, sp, ship); break;
-    case "launch":
-      quayCrowd(out, cam, t, -14, 16, 16, "cheer", 2);
-      crewOnDeck(out, cam, t, sp, ship, 10, () => "grin");
-      break;
-    case "shore":
-      quayCrowd(out, cam, t, sp.x - 26, sp.x + 18, 26, "cheer", 4);
-      crewOnDeck(out, cam, t, sp, ship, 10, (i) => (i % 2 ? "grin" : "laugh"));
-      salute(out, f, ship);
-      break;
-    case "boat": boatKid(out, cam, t, f); break;
-    case "inquiry": case "kingInq": {
-      const turn = id === 17 && f >= 1739 - 2;
-      [-1.35, 0, 1.35].forEach((dx, k) => stander(out, cam, t, 60 + k, JUDGE(k), `j${k}`, TABLE_AT[0] + dx, D0, TABLE_AT[2] - 0.85,
-        { expr: turn ? (k === 1 ? "shock" : "nervous") : "stern", look: turn ? 1 : 0 }, 1, 0, false));
-      out.fx.push({ key: "cap", cw: 220, ch: 160, draw: capAlone, x: STOOL_AT[0] - 0.08, y: D0 + 0.66, z: STOOL_AT[2], w: 0.42, h: 0.3 });
-      const fl = q(0.5 + 0.5 * Math.sin(t * 13), 10);
-      out.fx.push({ key: `candle${fl}`, cw: 120, ch: 300, draw: (p) => candle(p, fl), x: STOOL_AT[0] + 0.2, y: D0 + 0.72, z: STOOL_AT[2] + 0.05, w: 0.12, h: 0.3 });
-      if (id === 17) stander(out, cam, t, 80, KING, "king", KING_INQ[0], KING_INQ[1], KING_INQ[2], { expr: f < 1783 ? "neutral" : "smile_closed", facing: -1 });
+    case "round": {
+      for (let i = 0; i < 40; i++) {
+        const r = 10.5 + (i % 3) * 2.3, a = (i / 40) * Math.PI * 2 + (f - 648) * (0.042 - (i % 3) * 0.004);
+        auto(out, cam, t, "p0", PLAIN(0), { eye: "open", mouth: "flat" }, { x: ROUND[0] + r * Math.cos(a), z: ROUND[2] + r * Math.sin(a), dx: -Math.sin(a), dz: Math.cos(a), speed: 1 }, 40 + i, false);
+      }
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1, false);
       break;
     }
-    case "lift": drips(out, f, sp, ship); quayCrowd(out, cam, t, SINK_X - 20, SINK_X + 16, 14, "watch", 5); break;
-    case "tourists":
-      for (let i = 0; i < 24; i++) {
-        const row = i % 3, x = -4.5 + ((Math.floor(i / 3) + 0.5) / 8) * 11 + (hh(i, 31) - 0.5) * 0.9 + row * 0.45, z = -31.7 - row * 1.25 - hh(i, 32) * 0.5;
-        if (Math.abs(x - GANGWAY_X) < 1.3 && z > -32.4) continue; // keep the barrier clear
-        const kid = i % 7 === 5, o = kid ? KID : VISIT[i % 7];
-        const fo: FrontOpts = { expr: (["smile", "grin", "smile_closed", "laugh"] as Expr[])[i % 4], wave: i % 4 === 1 ? q(Math.sin(t * 6 + i), 30) : undefined, look: Math.round(Math.sin(t * 0.7 + i) * 1.2) > 0 ? 1 : 0 };
-        stander(out, cam, t, i + 300, o, kid ? "kid" : `v${i % 7}`, x, D0, z, fo, kid ? 0.72 : 1);
+    case "exit": auto(out, cam, t, "badshah", BADSHAH, bs, B, 1); break;
+    case "search1": {
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
+      const wink = f >= 905 && f < 924;
+      auto(out, cam, t, "grandma", GRANDMA, { eye: wink ? "squint" : "open", mouth: wink ? "grin" : "smile", look: -0.4 }, { x: GRANDMA_AT[0], z: GRANDMA_AT[2], dx: -1, dz: 0, speed: 0 }, 3);
+      const fo: FrontOpts = { mode: "stand", expr: "smile", blink: lidAt(t, 77) };
+      out.places.push(person(cam, { i: 77, o: UMBRELLA_LADY, okey: "umb" }, UMBRELLA_AT[0], D0 + 0.15, UMBRELLA_AT[2], { side: false, mirror: false }, fo, {}));
+      blob(out, UMBRELLA_AT[0], D0 + 0.15, UMBRELLA_AT[2]);
+      out.fx.push({ key: "umbrella", cw: 400, ch: 300, draw: umbrella, x: UMBRELLA_AT[0] + 0.1, y: D0 + 2.45, z: UMBRELLA_AT[2] + 0.1, w: 1.5, h: 1.12, rot: 0.15 * Math.sin(t * 3) });
+      break;
+    }
+    case "search2": {
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
+      const u = Math.max(0, f - 1005);
+      auto(out, cam, t, "pinkfar", { ...BIJLI, garland: false, lashes: false }, { eye: "open", mouth: "flat" }, { x: 236 + 0.004 * u * u + 0.05 * u, z: LANE.sea, dx: 1, dz: 0, speed: u > 0 ? 1 : 0 }, 4);
+      break;
+    }
+    case "hope": case "fall": {
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
+      if (J) auto(out, cam, t, "bijli", BIJLI, bijliState(id, f), J, 2);
+      traffic(out, cam, t, f, [[140 - 0.3 * (f - 1134), LANE.w2, -1, 1], [30 + 0.25 * (f - 1134), LANE.e2, 1, 1]]);
+      if (id === 12 && f >= 1215) petals(out, t, [B.x + 2, D0 + 0.6, B.z + 1.5]);
+      if (id === 13 && f >= CRASH_F && f < CRASH_F + 70) {
+        const u = (f - CRASH_F) / 70;
+        out.fx.push({ key: `stars${q(u, 30)}`, cw: 420, ch: 210, draw: (p) => fxStars(p, q(u, 30)), x: B.x, y: D0 + 2.2, z: B.z, w: 1.2, h: 0.6 });
+        if (f < CRASH_F + 6) { const v = (f - CRASH_F) / 6; out.fx.push({ key: `burst${q(v, 30)}`, cw: 500, ch: 500, draw: (p) => fxBurst(p, q(v, 30)), x: CRASH[0], y: D0 + 1.3, z: CRASH[2], w: 1.6, h: 1.6 }); }
       }
       break;
+    }
+    case "garage": case "magic": case "flower": case "flicker": {
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
+      if (J) auto(out, cam, t, "bijli", BIJLI, bijliState(id, f), J, 2);
+      if (id === 14) {
+        const hop = Math.max(0, Math.sin(t * 9)) * 0.05;
+        const fo: FrontOpts = { mode: "stand", expr: f < 1620 || f >= 1640 ? "laugh" : "grin", prop: ["hammer", q(0.5 + 0.5 * Math.sin(t * 6), 20)], blink: lidAt(t, 66), headTilt: 0.08 * Math.sin(t * 7) };
+        out.places.push(person(cam, { i: 66, o: HAPPY_SINGH, okey: "happy" }, HAPPY_AT[0], D0 + hop, HAPPY_AT[2], { side: false, mirror: false }, fo, {}));
+        blob(out, HAPPY_AT[0], D0 + 0.02, HAPPY_AT[2], 1.1);
+      }
+      if (id === 17) {
+        glow(out, cam, headlightPos(cam, B, 1), badshahGlow(f));
+        if (J) { const k = bijliGlow(f); glow(out, cam, headlightPos(cam, J, 1), k); glow(out, cam, headlightPos(cam, J, -1), k); }
+      }
+      break;
+    }
+    case "together": {
+      auto(out, cam, t, "badshah", BADSHAH, bs, B, 1);
+      if (J) auto(out, cam, t, "bijli", BIJLI, bijliState(id, f), J, 2);
+      break;
+    }
     default: break;
   }
   return out;
 };
-export { FPS, MASTS };
+const umbrella = (p: Pen) => {
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= 20; i++) { const a = Math.PI * (1 + i / 20); pts.push([200 + 180 * Math.cos(a), 170 + 120 * Math.sin(a)]); }
+  for (let k = 4; k >= 0; k--) { const x = 20 + k * 90; pts.push([x + 45, 175], [x, 160]); }
+  p.poly(pts, "#f07aa8", 7);
+  p.stroke([[200, 50], [200, 290]], 7);
+};
+export { FPS, F_, L };

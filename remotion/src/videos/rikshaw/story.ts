@@ -1,16 +1,16 @@
-// Timeline of "Thirty Sailors and a Gust of Wind" (the Vasa, Stockholm 1628): 19 shots timed to the voice words
-// (public/vasa/words.json, CUES.md), the ship physics (stability test rocking, gust, heel, flooding, sinking, raising)
-// and the camera grammar of the bridge short (motion.md): symmetric smootherstep glides 18-40 f, cuts on big
-// reframes, every hold creeps in, 7-frame flip kicks on impacts, no hand-held float.
+// Timeline of "Rikshaw Love" (fiction, the user's own story): 18 shots timed to the voice words
+// (public/rikshaw/words.json), one day on Marine Drive 9:30 am -> 6 pm golden hour. Same camera grammar as the
+// bridge / Vasa shorts (smootherstep glides, cuts on big reframes, creeping holds, flip kicks on impacts) with the
+// fiction toolkit: a light arc per beat (MOOD), eyes and faces carried by the autos (cast.ts), one love leitmotif.
 export const FPS = 30;
-export const TOTAL = 2040; // voice.wav = 68.00 s
-export const D0 = 6.0; // quay top above the water (m); the water is y = 0, quays at z = +-30
+export const TOTAL = 2340; // voice.wav = 78.00 s
+export const D0 = 6.0; // land / road height above the sea (m); the sea is y = 0 beyond the wall at z = -30
 export type V3 = [number, number, number];
 
 export const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 export const smooth = (x: number) => { const u = clamp01(x); return u * u * (3 - 2 * u); };
 export const easeOut = (u: number) => 1 - (1 - clamp01(u)) ** 4;
-const lin = (pts: [number, number][], x: number) => {
+export const lin = (pts: [number, number][], x: number) => {
   if (x <= pts[0][0]) return pts[0][1];
   for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]) {
     const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
@@ -18,37 +18,44 @@ const lin = (pts: [number, number][], x: number) => {
   }
   return pts[pts.length - 1][1];
 };
-const F = (f: number) => f / FPS; // frame -> seconds
+
+// ---------------- Marine Drive layout (x runs along the seafront) ----------------
+export const Z_WALL = -30;                        // sea wall; promenade -30 .. -34
+export const LANE = { sea: -35.8, e2: -38.6, w1: -43.4, w2: -46.2 }; // eastbound (+x): sea, e2; westbound (-x): w1, w2
+export const MEDIAN = -41;                        // divider with lamp posts
+export const FOOT = -49;                          // city-side footpath; building fronts at -51
+export const SIGNAL_X = 0;                        // stop line for the eastbound lanes
+export const CRASH: V3 = [72, D0, MEDIAN];        // the lamp post Badshah meets
+export const ROUND: V3 = [330, D0, -41];          // the busiest roundabout in Mumbai (island r 7, ring to r 18)
+export const GARAGE: V3 = [-260, D0, -60];        // Happy Singh's garage: room x -265..-255, z -66..-56, open toward +z
 
 // ---------------- shots ----------------
 export type Light = "day" | "golden";
-export type Crowd = "sail" | "king" | "builder" | "admiral" | "test" | "launch" | "shore" | "masts" | "boat" | "inquiry" | "kingInq" | "lift" | "tourists" | "none";
-export type ShotDef = { id: number; a: number; b: number; light: Light; crowd: Crowd; tau: (t: number) => number; towns?: boolean; sunAz?: number; sunEl?: number };
+export type Mood = "morning" | "noon" | "haze" | "warm" | "garage" | "garageGold" | "golden";
+export type ShotDef = { id: number; a: number; b: number; light: Light; mood: Mood; crowd: string; tau: (t: number) => number; sunAz?: number; sunEl?: number };
 const I = (t: number) => t;
 export const SHOTS: ShotDef[] = [
-  { id: 1, a: 0, b: 119, light: "day", crowd: "sail", tau: I },          // mightiest warship in Europe
-  { id: 2, a: 119, b: 176, light: "day", crowd: "masts", tau: I },       // ...it sank before it left the harbour (flash-forward)
-  { id: 3, a: 176, b: 206, light: "day", crowd: "builder", tau: I, sunAz: 120 }, // Stockholm (aerial, ship at the quay)
-  { id: 4, a: 206, b: 281, light: "day", crowd: "king", tau: I },        // the king wanted a ship that would terrify
-  { id: 5, a: 281, b: 419, light: "day", crowd: "none", tau: I, sunAz: 150, sunEl: 40 },        // 64 bronze cannons, two gun decks
-  { id: 6, a: 419, b: 499, light: "day", crowd: "builder", tau: I },     // the shipbuilder had never built one
-  { id: 7, a: 499, b: 567, light: "day", crowd: "admiral", tau: I },     // the admiral ordered a test
-  { id: 8, a: 567, b: 836, light: "day", crowd: "test", tau: I },        // thirty sailors running
-  { id: 9, a: 836, b: 910, light: "day", crowd: "admiral", tau: I },     // "If only His Majesty were at home"
-  { id: 10, a: 910, b: 945, light: "day", crowd: "launch", tau: I },     // and launched it anyway
-  { id: 11, a: 945, b: 1034, light: "golden", crowd: "shore", tau: I, sunAz: 160, sunEl: 14 },  // 10 August, farewell salute
-  { id: 12, a: 1034, b: 1181, light: "golden", crowd: "sail", tau: I, sunAz: 125, sunEl: 12 },  // 1300 m out, the gust, the sea comes in
-  { id: 13, a: 1181, b: 1397, light: "golden", crowd: "masts", tau: I }, // luckily 32 m deep / masts sticking out
-  { id: 14, a: 1397, b: 1530, light: "day", crowd: "boat", tau: I },     // stood up in a rowing boat?
-  { id: 15, a: 1530, b: 1628, light: "day", crowd: "none", tau: I, sunAz: 150, sunEl: 40 },     // all cannon on top
-  { id: 16, a: 1628, b: 1735, light: "day", crowd: "inquiry", tau: I },  // the inquiry; the builder had died
-  { id: 17, a: 1735, b: 1809, light: "day", crowd: "kingInq", tau: I },  // ...was the king
-  { id: 18, a: 1809, b: 1896, light: "day", crowd: "lift", tau: I },     // 333 years later they lifted her out
-  { id: 19, a: 1896, b: TOTAL, light: "day", crowd: "tourists", tau: I },// a million a year; nobody on deck
+  { id: 1, a: 0, b: 108, light: "day", mood: "morning", crowd: "signal", tau: I },        // 9:30, red light on Marine Drive
+  { id: 2, a: 108, b: 205, light: "day", mood: "morning", crowd: "signal", tau: I },      // Badshah ... fell in love
+  { id: 3, a: 205, b: 311, light: "day", mood: "morning", crowd: "signal", tau: I },      // her name was Bijli
+  { id: 4, a: 311, b: 418, light: "day", mood: "morning", crowd: "signal", tau: I },      // headlights wide, skipped a beat
+  { id: 5, a: 418, b: 487, light: "day", mood: "morning", crowd: "signal", tau: I },      // green, gone
+  { id: 6, a: 487, b: 564, light: "day", mood: "morning", crowd: "signal", tau: I },      // Natraj pulls down his goggles
+  { id: 7, a: 564, b: 648, light: "day", mood: "morning", crowd: "chase", tau: I },       // past the sea wall, round the corner
+  { id: 8, a: 648, b: 779, light: "day", mood: "morning", crowd: "round", tau: I },       // the roundabout
+  { id: 9, a: 779, b: 838, light: "day", mood: "morning", crowd: "exit", tau: I },        // she wasn't there
+  { id: 10, a: 838, b: 977, light: "day", mood: "noon", crowd: "search1", tau: I },       // pink roof! grandma / umbrella
+  { id: 11, a: 977, b: 1134, light: "day", mood: "haze", crowd: "search2", tau: I },      // ... drove away; drooped
+  { id: 12, a: 1134, b: 1312, light: "golden", mood: "warm", crowd: "hope", tau: I },     // 5:20, jasmine, there she was
+  { id: 13, a: 1312, b: 1468, light: "golden", mood: "warm", crowd: "fall", tau: I },     // only looked at her: lamp post
+  { id: 14, a: 1468, b: 1772, light: "golden", mood: "garage", crowd: "garage", tau: I }, // Happy Singh's garage
+  { id: 15, a: 1772, b: 1963, light: "golden", mood: "garageGold", crowd: "magic", tau: I }, // the door glows: Bijli
+  { id: 16, a: 1963, b: 2034, light: "golden", mood: "garageGold", crowd: "flower", tau: I }, // jasmine on his mirror
+  { id: 17, a: 2034, b: 2209, light: "golden", mood: "garageGold", crowd: "flicker", tau: I }, // once, softly / she flickered back
+  { id: 18, a: 2209, b: TOTAL, light: "golden", mood: "golden", crowd: "together", tau: I }, // golden evening, slowly
 ];
-/** crossfades (frames) at place/time changes; a white 4-frame flash after the hook */
-export const XFADE: Record<number, number> = { 11: 8, 14: 8, 15: 6, 16: 8, 18: 8, 19: 6 };
-export const FLASH_AT = 176;
+export const XFADE: Record<number, number> = { 10: 10, 11: 12, 12: 12, 14: 10, 18: 12 };
+export const FLASH_AT = -100; // no white flash in this film
 
 export const shotAt = (f: number) => SHOTS.find((s) => f >= s.a && f < s.b) ?? SHOTS[SHOTS.length - 1];
 export const layersAt = (f: number): { id: number; alpha: number }[] => {
@@ -59,70 +66,15 @@ export const layersAt = (f: number): { id: number; alpha: number }[] => {
   return [{ id: shotAt(f).id, alpha: 1 }];
 };
 
-// ---------------- ship physics ----------------
-export type ShipPose = {
-  visible: boolean; x: number; z: number; yaw: number; heel: number; sink: number;
-  /** port-lid opening 0..1 per row, for gun i on side s (+1 starboard, -1 port) */
-  ports: [(i: number, s: number) => number, (i: number, s: number) => number];
-  guns: number; sail: number; flag: number;
-};
-export const MOOR: V3 = [0, 0, -23.4]; // alongside the near quay (port side to the quay)
-export const COURSE_Z = -8;
-export const SINK_X = 41.5; // where she went down (x along the harbour)
-export const SUNK = 27.5, SUNK_HEEL = -0.3; // settled on the bottom: masts leaning to port
-const shut = () => 0, open = () => 1;
-/** ripple: lids open one after another from stern to bow starting at f0, `gap` frames apart, 6-frame swing */
-const ripple = (f: number, f0: number, gap = 2.2, side = 0) => (i: number, s: number) => (side && s !== side ? 0 : smooth((f - f0 - i * gap) / 6));
-/** the stability test: where the thirty stand across the deck (-1 port .. +1 starboard) */
-export const RUNS = [592, 652, 698, 746]; // run starts (frames): to starboard, back, again, and the third one stopped
-export const RUN_F = 30; // frames per crossing
-export const STOP_F = 779; // "stopped them"
-export const crewSide = (f: number) => {
-  let side = -1;
-  RUNS.forEach((r, k) => {
-    const dir = k % 2 ? -1 : 1, u = smooth((f - r) / RUN_F);
-    if (f < r) return;
-    const stopU = k === 3 ? Math.min(u, smooth((STOP_F - r) / RUN_F)) : u;
-    side = -dir + 2 * dir * stopU;
-  });
-  return side;
-};
-/** heel of the stability test (rad, + = starboard): a lagged response to the crew's side that grows with every
- *  crossing (rocked, rolled), then the lurch after they stop ("fell over") and a slow recovery */
-export const testHeel = (f: number) => {
-  const lag = crewSide(f - 7), gain = lin([[560, 0.07], [640, 0.09], [690, 0.13], [740, 0.17], [779, 0.2]], f);
-  const lurch = 0.17 * Math.exp(-Math.max(0, f - 812) / 16) * smooth((f - 790) / 22) * Math.cos(Math.max(0, f - 812) * 0.12);
-  const sway = 0.012 * Math.sin(f * 0.21);
-  return lag * gain + (f > 790 ? lurch : 0) + sway;
-};
-/** sinking curve u 0..1 -> heel / sink (heels hard to port, floods, goes down, settles leaning to port) */
-const sinkPose = (u: number) => ({ heel: lin([[0, -0.08], [0.25, -0.62], [0.55, -0.78], [1, SUNK_HEEL]], u), sink: SUNK * smooth(lin([[0, 0], [0.2, 0.02], [1, 1]], u)) });
-/** course out of the harbour (10 August): towed off the quay, then under sail along x */
-const courseX = (f: number) => (f < 945 ? 2 + 0.06 * (f - 910) : Math.min(SINK_X, 26 + 0.0969 * (f - 945)));
-export const shipPose = (id: number, f: number): ShipPose => {
-  const t = F(f), bob = 0.012 * Math.sin(t * 1.3);
-  const base: ShipPose = { visible: true, x: MOOR[0], z: MOOR[2], yaw: 0, heel: bob, sink: 0, ports: [shut, shut], guns: 1, sail: -1, flag: 0.25 };
-  switch (id) {
-    case 1: return { ...base, x: 6 + 0.07 * f, z: COURSE_Z, heel: 0.03 * Math.sin(t * 0.9), ports: [open, open], sail: 0.7, flag: 0.5 };
-    case 2: { const u = clamp01((f - 124) / 32); return { ...base, x: SINK_X, z: COURSE_Z, ...sinkPose(u), ports: [open, open], sail: 0.9, flag: 0.8 }; }
-    case 5: return { ...base, ports: [ripple(f, 310), ripple(f, 388)] };
-    case 8: return { ...base, heel: testHeel(f) };
-    case 10: { const u = smooth((f - 905) / 45); return { ...base, x: courseX(f), z: MOOR[2] + (COURSE_Z - MOOR[2]) * 0.35 * u, sail: u > 0.5 ? 0.2 : -1 }; }
-    case 11: return { ...base, x: courseX(f), z: COURSE_Z, ports: [ripple(f, 975, 1.6), ripple(f, 982, 1.6)], sail: 0.45, flag: 0.35, heel: 0.015 * Math.sin(t) };
-    case 12: case 13: {
-      const gust = smooth((f - 1080) / 10), x = courseX(Math.min(f, 1105));
-      let heel = -0.04 - 0.4 * smooth((f - 1082) / 26) - 0.25 * smooth((f - 1112) / 24);
-      let sink = 0;
-      if (f >= 1138) { const s = sinkPose(clamp01((f - 1138) / 105)); heel = Math.min(heel, s.heel); if (f > 1200) heel = s.heel; sink = s.sink; }
-      return { ...base, x, z: COURSE_Z, heel: heel + bob, sink, ports: [open, open], sail: sink > 14 ? -1 : 0.45 + 0.55 * gust, flag: 0.35 + 0.65 * gust };
-    }
-    case 14: case 16: case 17: return { ...base, visible: false };
-    case 15: return { ...base, ports: [open, open] };
-    case 18: { const u = smooth((f - 1858) / 40); return { ...base, x: SINK_X, z: COURSE_Z, heel: SUNK_HEEL * (1 - u), sink: SUNK * (1 - u) - 0.4 * u, sail: -1, flag: 0 }; }
-    case 19: return { ...base, flag: 0.15 };
-    default: return base;
-  }
-};
+// ---------------- story clocks ----------------
+/** eastbound signal: red until 435, then green */
+export const signalAt = (f: number): "red" | "amber" | "green" => (f < 428 ? "red" : f < 436 ? "amber" : "green");
+/** Badshah's garage-door light 0..1 (shot 15 on) and the flicker glows of the ending */
+export const doorGold = (f: number) => smooth((f - 1779) / 42);
+const pulse = (f: number, f0: number, up = 3, hold = 6, down = 10) => (f < f0 ? 0 : f < f0 + up ? (f - f0) / up : f < f0 + up + hold ? 1 : Math.max(0, 1 - (f - f0 - up - hold) / down));
+export const badshahGlow = (f: number) => Math.max(pulse(f, 2134), 0.85 * pulse(f, 2152, 4, 8, 14));
+export const bijliGlow = (f: number) => Math.max(pulse(f, 2178, 4, 10, 16), 0.8 * pulse(f, 2196, 4, 8, 14));
+export const honk = 1847, BIJLI_IN = 1882, FLOWER_F = 1990, CRASH_F = 1452;
 
 // ---------------- camera ----------------
 export type Cam = { pos: V3; look: V3; fov: number; roll: number };
@@ -143,7 +95,6 @@ const run = (keys: Key[], f: number) => {
   }
   return cur;
 };
-/** push-in factor since f0 (per-frame rate, optional punch for the first n frames with 8 f soft edges) */
 const pushK = (f: number, f0: number, rate: number, punch = 0, n = 35) => {
   const x = Math.max(0, f - f0);
   let s = rate * x;
@@ -152,101 +103,129 @@ const pushK = (f: number, f0: number, rate: number, punch = 0, n = 35) => {
 };
 const dolly = (pos: V3, look: V3, k: number, rest: Partial<Cam> = {}): Shot =>
   ({ pos: [look[0] + (pos[0] - look[0]) * k, look[1] + (pos[1] - look[1]) * k, look[2] + (pos[2] - look[2]) * k], look, ...rest });
-const zoom = (pos: V3, look: V3, fov: number, k: number, rest: Partial<Cam> = {}): Shot =>
-  ({ pos, look, fov: (360 / Math.PI) * Math.atan(Math.tan((fov * Math.PI) / 360) * k), ...rest });
-const rolled = (s: (f: number) => Shot, roll: number) => (f: number): Shot => ({ ...s(f), roll });
 
-// ship-relative points (moored ship, local deck heights mirror ship.ts deckH)
-const deckH = (x: number) => 6.4 + 4.8 * smooth((-x - 11) / 7) + 1.8 * smooth((x - 13) / 5);
-export const ADMIRAL_AT: V3 = [-17.6, 0, -0.9]; // local, on the quarterdeck (y from deckH)
-export const KING_AT: V3 = [-1.5, D0, -31.0];
-export const BUILDER_AT: V3 = [-9.0, D0, -31.1];
-export const TABLE_AT: V3 = [-42, D0, -33.6];
-export const STOOL_AT: V3 = [-37.6, D0, -32.9];
-export const KING_INQ: V3 = [-34.8, D0, -33.4];
-export const BOAT_AT: V3 = [-62, 0, -13];
-const SX = (f: number) => shipPose(1, f).x; // hook course
-
-// ---- framings ----
-// 1 hook: low 3/4 from ahead-starboard, the ship sails toward the lens; then a heroic low angle under the bowsprit
-const S1a = (f: number) => dolly([SX(f) + 70, 14, 30], [SX(f) + 2, 15, COURSE_Z], pushK(f, 0, 0.0025), { fov: 44 });
-const S1b = (f: number) => dolly([SX(f) + 46, 3.4, 20], [SX(f) + 3, 17, COURSE_Z], pushK(f, 60, 0.003, 0.006, 30), { fov: 46, roll: -0.04 });
-// 2 flash-forward: side-on from the water, tilting down after the hull as she goes
-const S2a = (f: number) => dolly([SINK_X + 26, 4.5, 22], [SINK_X, 15 - 8 * smooth((f - 124) / 30), COURSE_Z], pushK(f, 119, 0.002), { fov: 48 });
-// 3 Stockholm aerial: over the far bank, the ship at the quay, houses on both banks
-const S3a = (f: number) => zoom([62, 56, 34], [-4, 6, -30], 46, pushK(f, 172, 0.002));
-// 4 the king on the quay, the ship's side and rigging behind him; punch + roll on "terrify"
-const S4a = (f: number) => dolly([KING_AT[0] + 1.6, D0 + 1.45, -35.6], [KING_AT[0], D0 + 2.0, KING_AT[2]], pushK(f, 206, 0.0025), { fov: 40 });
-const S4b = (f: number) => dolly([KING_AT[0] + 0.9, D0 + 1.35, -34.6], [KING_AT[0], D0 + 1.95, KING_AT[2]], pushK(f, 241, 0.002, 0.006, 30), { fov: 38, roll: 0.04 });
-// 5 starboard side from the water: the lower row opens, then up to the upper row ("two gun decks")
-const S5a = (f: number) => dolly([-4, 2.7, -5.5], [1.5, 2.6, -18.3], pushK(f, 281, 0.0022), { fov: 42 });
-const S5b = (f: number) => dolly([-3.5, 5.4, -6.5], [1.5, 4.6, -18.3], pushK(f, 375, 0.002, 0.005, 30), { fov: 42, roll: -0.035 });
-// 6 the shipbuilder on the quay, scratching his head
-const S6a = (f: number) => dolly([BUILDER_AT[0] - 1.3, D0 + 1.5, -35.3], [BUILDER_AT[0], D0 + 1.7, BUILDER_AT[2]], pushK(f, 419, 0.0025, 0.005, 30), { fov: 40 });
-// 7 / 9 the admiral on the quarterdeck, seen from the waist looking aft (the ensign behind him)
-const AD = (): V3 => [ADMIRAL_AT[0], deckH(ADMIRAL_AT[0]), MOOR[2] + ADMIRAL_AT[2]];
-const S7a = (f: number) => { const a = AD(); return dolly([a[0] + 2.4, a[1] + 1.35, a[2] + 4.6], [a[0], a[1] + 1.75, a[2]], pushK(f, 499, 0.0025), { fov: 40 }); };
-const S9a = (f: number) => { const a = AD(); return dolly([a[0] + 1.6, a[1] + 1.5, a[2] + 3.4], [a[0], a[1] + 1.85, a[2]], pushK(f, 836, 0.002, 0.005, 35), { fov: 38, roll: -0.03 }); };
-// 8 the stability test from astern (world-fixed lens: the whole ship rolls in the frame)
-const S8a = (f: number) => dolly([-34, 27, -13], [0, 7.0, -23.4], pushK(f, 567, 0.0018), { fov: 40 });
-const S8b = (f: number) => dolly([-24, 19, -16], [0.5, 6.8, -23.4], pushK(f, 652, 0.0022), { fov: 40, roll: 0.03 });
-const S8c = (f: number) => dolly([-36, 25, -18], [0, 7.2, -23.4], pushK(f, 746, 0.0022, 0.005, 30), { fov: 42, roll: -0.03 });
-// 10 launch: high from the far bank, the ship warped off the quay
-const S10a = (f: number) => zoom([30, 24, 18], [4, 8, -20], 42, pushK(f, 910, 0.0025));
-// 11 golden: from the water past the ship toward the cheering quay
-const S11a = (f: number) => dolly([courseX(975) + 16, 13.5, 18], [courseX(975) - 4, 7.2, -30], pushK(f, 945, 0.002), { fov: 44 });
-const S11b = (f: number) => dolly([courseX(1010) + 5, 4.0, 6.5], [courseX(1010) - 1.5, 4.2, COURSE_Z], pushK(f, 1012, 0.002, 0.005, 25), { fov: 40, roll: 0.035 });
-// 12 aerial 1300 m out -> bow 3/4 on the gust -> the port gun ports at the water line
-const X12 = SINK_X - 1.5;
-const S12a = (f: number) => zoom([X12 + 64, 34, 36], [X12, 9, COURSE_Z], 42, pushK(f, 1034, 0.002));
-const S12b = (f: number) => dolly([X12 + 30, 8.5, 16], [X12 + 1, 13, COURSE_Z], pushK(f, 1082, 0.0025, 0.006, 30), { fov: 46, roll: -0.04 });
-const S12c = (f: number) => dolly([SINK_X + 9, 2.4, -27.2], [SINK_X - 1, 3.6, COURSE_Z - 2], pushK(f, 1133, 0.003, 0.005, 25), { fov: 46, roll: 0.035 });
-// 13 deadpan: low over the water, the quay crowd behind; tilt up to the masts on "Unluckily"
-const S13a = (f: number) => dolly([SINK_X + 6, 2.2, 13], [SINK_X - 1, 2.4, -14], pushK(f, 1181, 0.0018), { fov: 42 });
-const S13b = (f: number) => dolly([SINK_X + 16, 3.4, 19], [SINK_X + 4, 8.0, -12], pushK(f, 1258, 0.002, 0.006, 35), { fov: 48, roll: 0.04 });
-const S13c = (f: number) => dolly([SINK_X + 3, 4.6, 9], [SINK_X + 0.5, 7.0, COURSE_Z], pushK(f, 1310, 0.0025), { fov: 42, roll: -0.03 });
-// 14 the rowing boat
-const S14a = (f: number) => dolly([BOAT_AT[0] + 3.4, 3.6, BOAT_AT[2] + 5.6], [BOAT_AT[0], 0.8, BOAT_AT[2]], pushK(f, 1397, 0.002), { fov: 40 });
-const S14b = (f: number) => dolly([BOAT_AT[0] + 2.6, 2.9, BOAT_AT[2] + 4.3], [BOAT_AT[0], 0.85, BOAT_AT[2]], pushK(f, 1476, 0.002, 0.005, 25), { fov: 40, roll: 0.04 });
-// 15 the upper gun deck -> tilt down to the water line ("almost nothing underneath")
-const S15a = (f: number) => dolly([3, 6.2, -8], [0.5, 5.0, -18.3], pushK(f, 1530, 0.0025), { fov: 42 });
-const S15b = (f: number) => dolly([3, 1.3, -9], [0.5, -0.2, -18.3], pushK(f, 1585, 0.0025), { fov: 42, roll: -0.035 });
-// 16 the inquiry table on the quay; the builder's empty stool
-const S16a = (f: number) => dolly([TABLE_AT[0] + 0.6, D0 + 2.3, -24.6], [TABLE_AT[0], D0 + 1.3, TABLE_AT[2]], pushK(f, 1628, 0.0022, 0.004, 30), { fov: 46 });
-const S16b = (f: number) => dolly([STOOL_AT[0] + 0.5, D0 + 0.95, STOOL_AT[2] + 2.4], [STOOL_AT[0] + 0.05, D0 + 0.68, STOOL_AT[2]], pushK(f, 1684, 0.003), { fov: 38 });
-// 17 the judges turn ("the man who approved the design...") -> the king, pleased with himself
-const S17a = (f: number) => dolly([TABLE_AT[0] + 2.6, D0 + 2.0, -26.8], [TABLE_AT[0] + 1.6, D0 + 1.45, TABLE_AT[2]], pushK(f, 1735, 0.002), { fov: 44 });
-const S17b = (f: number) => dolly([KING_INQ[0] - 0.6, D0 + 1.6, KING_INQ[2] + 3.6], [KING_INQ[0], D0 + 1.95, KING_INQ[2]], pushK(f, 1783, 0.002, 0.006, 25), { fov: 38, roll: 0.04 });
-// 18 raised: wide from the water, the masts first, then the hull
-const S18a = (f: number) => dolly([SINK_X + 24, 7, 22], [SINK_X, 9 - 2 * smooth((f - 1860) / 40), COURSE_Z], pushK(f, 1809, 0.002), { fov: 46 });
-// 19 the visitors on the quay with the ship behind; then the empty deck from the quarterdeck
-const S19a = (f: number) => dolly([3.2, deckH(3) + 3.0, MOOR[2] - 3.2], [1.0, D0 + 1.3, -33.2], pushK(f, 1896, 0.002, 0.005, 30), { fov: 46 });
-const S19b = (f: number) => dolly([-11, deckH(-11) + 1.6, MOOR[2] + 1.6], [10, deckH(0) + 0.2, MOOR[2] - 1.2], pushK(f, 2003, 0.0025), { fov: 42 });
-
-const CAMS: Record<number, Key[]> = {
-  1: [{ f: 0, s: S1a }, { f: 52, dur: 30, s: S1b }],                // centred on "mightiest" (64)
-  2: [{ f: 119, s: S2a }],
-  3: [{ f: 172, s: S3a }],
-  4: [{ f: 206, s: S4a }, { f: 236, dur: 18, s: S4b }],              // centred on "terrify" (241)
-  5: [{ f: 281, s: S5a }, { f: 372, dur: 30, s: S5b }],              // centred on "two" (388)
-  6: [{ f: 419, s: S6a }],
-  7: [{ f: 499, s: S7a }],
-  8: [{ f: 567, s: S8a }, { f: 652, cut: true, s: S8b }, { f: 746, cut: true, s: S8c }],
-  9: [{ f: 836, s: S9a }],
-  10: [{ f: 910, s: S10a }],
-  11: [{ f: 945, s: S11a }, { f: 1012, cut: true, s: S11b }],       // cut to the guns on "salute"
-  12: [{ f: 1034, s: S12a }, { f: 1082, cut: true, s: S12b }, { f: 1133, cut: true, s: S12c }],
-  13: [{ f: 1181, s: S13a }, { f: 1246, dur: 26, s: S13b }, { f: 1310, cut: true, s: S13c }],
-  14: [{ f: 1393, s: S14a }, { f: 1476, cut: true, s: S14b }],
-  15: [{ f: 1527, s: S15a }, { f: 1585, dur: 30, s: S15b }],         // tilt down through "almost nothing"
-  16: [{ f: 1624, s: S16a }, { f: 1684, cut: true, s: S16b }],
-  17: [{ f: 1735, s: S17a }, { f: 1783, cut: true, s: S17b }],
-  18: [{ f: 1805, s: S18a }],
-  19: [{ f: 1893, s: S19a }, { f: 2003, cut: true, s: S19b }],
+// ---------------- where the autos are (shared by the cameras and cast.ts) ----------------
+export type AutoPos = { x: number; z: number; dx: number; dz: number; speed: number };
+const BX0 = -3.2, ZB = LANE.e2, ZJ = LANE.sea;
+/** Badshah, per shot */
+export const badshahAt = (id: number, f: number): AutoPos => {
+  switch (id) {
+    case 1: case 2: case 3: case 4: case 6: return { x: BX0, z: ZB, dx: 1, dz: 0, speed: 0 };
+    case 5: { const x = BX0 + 3.5 * smooth((f - 470) / 30) * ((f - 470) / 30); return { x, z: ZB, dx: 1, dz: 0, speed: f > 470 ? 1 : 0 }; }
+    case 7: return { x: 6 + (f - 564) * 0.62, z: lin([[564, ZB], [610, ZB], [630, LANE.sea]], f), dx: 1, dz: 0, speed: 1 };
+    case 8: { const a = (f - 648) * 0.045, r = 12.5; return { x: ROUND[0] + r * Math.cos(a), z: ROUND[2] + r * Math.sin(a), dx: -Math.sin(a), dz: Math.cos(a), speed: 1 }; }
+    case 9: return { x: ROUND[0] + 32 + 2 * smooth((f - 779) / 30), z: LANE.e2, dx: 1, dz: 0, speed: f < 805 ? 0.4 : 0 };
+    case 10: return { x: 150, z: LANE.e2, dx: 1, dz: 0, speed: 0 };
+    case 11: return { x: 190, z: LANE.e2, dx: 1, dz: 0, speed: 0 };
+    case 12: return { x: 96 - 0.05 * (f - 1134), z: LANE.w1, dx: -1, dz: 0, speed: 0.3 };
+    case 13: {
+      // heads straight across toward her (sea lane at x ~ 70), meets the median lamp post at CRASH_F
+      if (f < 1409) return { x: 88.5 - 0.05 * (f - 1312), z: LANE.w1, dx: -1, dz: 0, speed: 0.3 };
+      const u = smooth((f - 1409) / (CRASH_F - 1409));
+      const x = 83.6 + (CRASH[0] + 0.9 - 83.6) * u, z = LANE.w1 + (CRASH[2] - 1.0 - LANE.w1) * u;
+      return { x, z, dx: -0.6, dz: 0.8, speed: f < CRASH_F ? 1 : 0 };
+    }
+    case 14: case 16: case 17: return { x: GARAGE[0], z: GARAGE[2] - 1.2, dx: 0, dz: 1, speed: 0 };
+    case 15: return { x: GARAGE[0] - 0.6, z: GARAGE[2] - 1.2, dx: 0, dz: 1, speed: 0 };
+    case 18: return { x: 20 + 0.09 * (f - 2209), z: LANE.e2, dx: 1, dz: 0, speed: 0.4 };
+    default: return { x: BX0, z: ZB, dx: 1, dz: 0, speed: 0 };
+  }
+};
+/** Bijli, per shot (null = not in the shot) */
+export const bijliAt = (id: number, f: number): AutoPos | null => {
+  switch (id) {
+    case 1: return null;
+    case 2: return f > 175 ? { x: BX0 - 9 + 8.7 * smooth((f - 175) / 50), z: ZJ, dx: 1, dz: 0, speed: f < 225 ? 0.6 : 0 } : null;
+    case 3: case 4: case 6: return { x: BX0 - 0.3, z: ZJ, dx: 1, dz: 0, speed: 0 };
+    case 5: { const u = Math.max(0, f - 440); return { x: BX0 - 0.3 + 0.004 * u * u + 0.05 * u, z: ZJ, dx: 1, dz: 0, speed: u > 0 ? 1 : 0 }; }
+    case 12: return f > 1250 ? { x: 68, z: LANE.sea, dx: 1, dz: 0, speed: 0 } : null;
+    case 13: return { x: 68, z: LANE.sea, dx: 1, dz: 0, speed: 0 };
+    case 15: return f >= BIJLI_IN ? { x: GARAGE[0] + 0.8 - 0.4 * smooth((f - BIJLI_IN) / 40), z: GARAGE[2] + 6.5 - 2.4 * smooth((f - BIJLI_IN) / 40), dx: 0, dz: -1, speed: f < BIJLI_IN + 40 ? 0.3 : 0 } : null;
+    case 16: case 17: return { x: GARAGE[0] + 0.4, z: GARAGE[2] + 4.1, dx: 0, dz: -1, speed: 0 };
+    case 18: return { x: 21.5 + 0.09 * (f - 2209), z: LANE.sea, dx: 1, dz: 0, speed: 0.4 };
+    default: return null;
+  }
 };
 
-/** sun override for one camera segment (key = shot id : segment start frame), camera-relative like ShotDef.sunAz */
-export const SUN_SEG: Record<string, { az: number; el: number }> = { "12:1133": { az: 165, el: 22 } };
+// ---- framings ----
+const H = D0; // road level
+const B = (id: number, f: number) => badshahAt(id, f);
+// 1: high over the promenade, the red light and the waiting autos, the art-deco front behind
+const S1a = (f: number) => dolly([20, 17, -16], [-6, H + 2.5, -42], pushK(f, 0, 0.0025), { fov: 44 });
+// 2: Badshah at the light (front), push on "fell in love"
+const S2a = (f: number) => dolly([3.0, H + 1.25, ZB + 0.6], [BX0, H + 0.95, ZB], pushK(f, 108, 0.002, 0.006, 30), { fov: 40 });
+// 3: Bijli rolls up in the sea lane; push to her jasmine
+const S3a = (f: number) => dolly([3.0, H + 1.2, ZJ - 0.8], [BX0 - 0.3, H + 0.95, ZJ], pushK(f, 205, 0.0022), { fov: 40 });
+const S3b = (f: number) => dolly([0.3, H + 1.55, ZJ - 0.9], [BX0 - 0.3, H + 1.42, ZJ + 0.45], pushK(f, 262, 0.0025), { fov: 36, roll: 0.03 });
+// 4: Badshah close-up: wide eyes, the skipped beat
+const S4a = (f: number) => dolly([0.2, H + 1.0, ZB + 0.25], [BX0, H + 0.82, ZB], pushK(f, 311, 0.002, 0.007, 28), { fov: 36 });
+// 5: the signal turns green (insert) -> she glides away (from the promenade)
+const S5a = (f: number) => dolly([3.5, H + 4.6, -36.5], [0.4, H + 5.4, -38.8], pushK(f, 418, 0.003), { fov: 34 });
+const S5b = (f: number) => dolly([4.5, H + 1.6, -31.4], [5.5, H + 0.9, -38], pushK(f, 440, 0.0018), { fov: 46 });
+// 6: Natraj behind the windscreen pulls his goggles down
+const S6a = (f: number) => dolly([-0.6, H + 1.6, ZB + 0.15], [BX0, H + 1.45, ZB], pushK(f, 487, 0.0025, 0.006, 25), { fov: 32, roll: -0.03 });
+// 7: chase, tracking alongside from the promenade; whip on "corner"
+const S7a = (f: number) => { const b = B(7, f); return { pos: [b.x + 2.2, H + 1.7, -31.2] as V3, look: [b.x + 0.4, H + 0.9, b.z] as V3, fov: 46, roll: 0.03 }; };
+const S7b = (f: number) => { const b = B(7, f); return { pos: [b.x + 9, H + 1.2, LANE.e2 + 0.5] as V3, look: [b.x, H + 0.9, b.z] as V3, fov: 40, roll: -0.04 }; };
+// 8: the roundabout from above, then low among the identical autos
+const S8a = (f: number) => dolly([ROUND[0] + 24, 31, ROUND[2] + 24], [ROUND[0], H, ROUND[2]], pushK(f, 648, 0.0025), { fov: 46 });
+const S8b = (f: number) => dolly([ROUND[0] + 9, H + 1.6, ROUND[2] + 21], [ROUND[0] + 2, H + 0.9, ROUND[2] + 10], pushK(f, 708, 0.002), { fov: 44, roll: 0.03 });
+// 9: out of the roundabout, dazed, alone
+const S9a = (f: number) => { const b = B(9, f); return dolly([b.x + 5.5, H + 1.3, b.z + 0.5], [b.x, H + 0.95, b.z], pushK(f, 779, 0.0022), { fov: 40 }); };
+// 10: noon search: Badshah -> the grandma auto -> the pink umbrella
+export const GRANDMA_AT: V3 = [156, D0, LANE.sea];
+export const UMBRELLA_AT: V3 = [161, D0, FOOT + 0.4];
+const S10a = (f: number) => dolly([155, H + 1.2, ZB + 0.4], [150, H + 0.95, ZB], pushK(f, 838, 0.0025, 0.006, 25), { fov: 40 });
+const S10b = (f: number) => dolly([GRANDMA_AT[0] - 4.2, H + 1.15, GRANDMA_AT[2] + 0.4], [GRANDMA_AT[0], H + 0.95, GRANDMA_AT[2]], pushK(f, 903, 0.003), { fov: 38, roll: -0.03 });
+const S10c = (f: number) => dolly([UMBRELLA_AT[0] - 1.0, H + 1.6, LANE.w1], [UMBRELLA_AT[0], H + 1.7, UMBRELLA_AT[2]], pushK(f, 926, 0.0025), { fov: 42, roll: 0.03 });
+// 11: hazy: a pink roof far away driving off; Badshah's lids droop
+const S11a = (f: number) => dolly([186, H + 1.3, ZB + 0.6], [240, H + 1.0, LANE.sea], pushK(f, 977, 0.0015), { fov: 22 });
+const S11b = (f: number) => dolly([194.2, H + 1.0, ZB + 0.3], [190, H + 0.85, ZB], pushK(f, 1041, 0.0012), { fov: 36 });
+// 12: 5:20 warm: driving slowly back along Marine Drive; jasmine; there she was (across the road)
+const S12a = (f: number) => { const b = B(12, f); return dolly([b.x - 7, H + 2.4, LANE.w2 - 1.5], [b.x, H + 1.0, b.z], pushK(f, 1134, 0.002), { fov: 44 }); };
+const S12b = (f: number) => { const b = B(12, f); return dolly([b.x - 4.2, H + 1.15, b.z + 0.3], [b.x, H + 0.95, b.z], pushK(f, 1231, 0.0025), { fov: 38 }); };
+const S12c = (f: number) => { const b = B(12, f); return dolly([b.x + 1.6, H + 1.7, b.z - 1.4], [68, H + 0.9, LANE.sea], pushK(f, 1256, 0.0015, 0.005, 35), { fov: 30 }); };
+// 13: heart eyes (close) -> across the road -> BOING
+const S13a = (f: number) => { const b = B(13, f); return dolly([b.x - 3.4, H + 1.0, b.z + 0.2], [b.x, H + 0.85, b.z], pushK(f, 1312, 0.002, 0.006, 30), { fov: 36 }); };
+const S13b = (f: number) => dolly([CRASH[0] - 7.5, H + 1.8, -36.6], [CRASH[0] + 2, H + 1.2, -42.5], pushK(f, 1409, 0.002), { fov: 46 });
+// 14: the garage: from the door looking in; Happy Singh laughing; Badshah still
+const G = GARAGE;
+export const HAPPY_AT: V3 = [G[0] + 1.9, D0, G[2] - 0.6];
+const S14a = (f: number) => dolly([G[0] + 1.2, H + 1.6, G[2] + 5.6], [G[0] + 0.4, H + 1.1, G[2] - 1.5], pushK(f, 1468, 0.002), { fov: 44 });
+const S14b = (f: number) => dolly([HAPPY_AT[0] - 0.4, H + 1.7, HAPPY_AT[2] + 3.4], [HAPPY_AT[0], H + 1.75, HAPPY_AT[2]], pushK(f, 1620, 0.0025, 0.006, 25), { fov: 40 });
+const S14c = (f: number) => dolly([G[0] - 0.2, H + 1.05, G[2] + 2.6], [G[0], H + 0.9, G[2] - 1.2], pushK(f, 1688, 0.0025), { fov: 36 });
+// 15: inside, looking out at the door: gold light, the honk, Bijli in the doorway
+const S15a = (f: number) => dolly([G[0] - 3.3, H + 1.45, G[2] - 4.3], [G[0] + 0.3, H + 1.25, G[2] + 4.6], pushK(f, 1772, 0.0015), { fov: 46 });
+const S15b = (f: number) => dolly([G[0] - 1.6, H + 1.2, G[2] - 2.0], [G[0] + 0.4, H + 1.05, G[2] + 4.2], pushK(f, 1886, 0.0018, 0.005, 35), { fov: 40, roll: 0.025 });
+// 16: the jasmine flower on his mirror
+const S16a = (f: number) => dolly([G[0] + 0.45, H + 1.7, G[2] + 1.2], [G[0] + 0.6, H + 1.55, G[2] - 1.2], pushK(f, 1963, 0.003), { fov: 32 });
+// 17: his one good headlight; hers back
+const S17a = (f: number) => dolly([G[0] + 0.1, H + 1.05, G[2] + 2.2], [G[0], H + 0.85, G[2] - 1.2], pushK(f, 2034, 0.0016), { fov: 34 });
+const S17b = (f: number) => dolly([G[0] + 0.3, H + 1.05, G[2] + 0.9], [G[0] + 0.4, H + 0.85, G[2] + 4.1], pushK(f, 2168, 0.0018), { fov: 34, roll: -0.02 });
+// 18: golden evening on Marine Drive: low beside the two autos, crane up and out over the sea wall
+const S18a = (f: number) => { const b = B(18, f); return { pos: [b.x + 6, H + 1.2, -32.6] as V3, look: [b.x, H + 0.9, -37.2] as V3, fov: 42, roll: 0 }; };
+const S18b = (f: number): Shot => { const b = B(18, f), u = glide((f - 2262) / 78); return { pos: [b.x + 6 + 14 * u, H + 1.2 + 15 * u, -32.6 + 12 * u], look: [b.x + 2 * u, H + 0.9 - 0.4 * u, -37.2 + 2 * u], fov: 42 + 6 * u, roll: 0 }; };
+
+const CAMS: Record<number, Key[]> = {
+  1: [{ f: 0, s: S1a }],
+  2: [{ f: 108, s: S2a }],
+  3: [{ f: 205, s: S3a }, { f: 256, dur: 26, s: S3b }],            // glide to the jasmine (270)
+  4: [{ f: 311, s: S4a }],
+  5: [{ f: 418, s: S5a }, { f: 440, cut: true, s: S5b }],
+  6: [{ f: 487, s: S6a }],
+  7: [{ f: 564, s: S7a }, { f: 624, cut: true, s: S7b }],           // whip on "corner"
+  8: [{ f: 648, s: S8a }, { f: 708, cut: true, s: S8b }],
+  9: [{ f: 779, s: S9a }],
+  10: [{ f: 834, s: S10a }, { f: 903, cut: true, s: S10b }, { f: 926, cut: true, s: S10c }],
+  11: [{ f: 971, s: S11a }, { f: 1041, cut: true, s: S11b }],
+  12: [{ f: 1128, s: S12a }, { f: 1231, cut: true, s: S12b }, { f: 1256, cut: true, s: S12c }],
+  13: [{ f: 1312, s: S13a }, { f: 1409, cut: true, s: S13b }],
+  14: [{ f: 1463, s: S14a }, { f: 1620, cut: true, s: S14b }, { f: 1688, cut: true, s: S14c }],
+  15: [{ f: 1772, s: S15a }, { f: 1886, cut: true, s: S15b }],
+  16: [{ f: 1963, s: S16a }],
+  17: [{ f: 2034, s: S17a }, { f: 2168, cut: true, s: S17b }],
+  18: [{ f: 2203, s: S18a }, { f: 2262, cut: true, s: S18b }],
+};
 /** frame range [a, b) of the camera segment (between cuts) that frame f of shot id belongs to */
 export const segmentOf = (id: number, f: number): [number, number] => {
   const s = SHOTS[id - 1];
@@ -254,9 +233,10 @@ export const segmentOf = (id: number, f: number): [number, number] => {
   for (const k of CAMS[id]) { if (k.cut && k.f <= f) a = k.f; if (k.cut && k.f > f) { b = Math.min(b, k.f); break; } }
   return [Math.max(a, s.a), b];
 };
+/** sun overrides per camera segment ("shot:segmentStart"), camera-relative az/el like ShotDef */
+export const SUN_SEG: Record<string, { az: number; el: number }> = {};
 
-// impact kicks (seconds, gain): the hook's sink, the lurch, the salute, the gust, the flood
-const KICKS: [number, number][] = [[F(124), 0.5], [F(812), 0.8], [F(1019), 0.6], [F(1082), 1.0], [F(1133), 0.7]];
+const KICKS: [number, number][] = [[CRASH_F / FPS, 1.4], [624 / FPS, 0.4], [401 / FPS, 0.35]];
 export const kickAt = (t: number) => {
   let a = 0;
   for (const [t0, g] of KICKS) {
@@ -266,7 +246,7 @@ export const kickAt = (t: number) => {
   return a;
 };
 export const camAt = (id: number, f: number): Cam => {
-  const c = run(CAMS[id], f), a = kickAt(F(f));
+  const c = run(CAMS[id], f), a = kickAt(f / FPS);
   if (!a) return c;
   const d: V3 = [c.look[0] - c.pos[0], c.look[1] - c.pos[1], c.look[2] - c.pos[2]];
   const L = Math.hypot(...d), h = Math.hypot(d[0], d[2]) || 1;
@@ -276,29 +256,34 @@ export const camAt = (id: number, f: number): Cam => {
 
 // ---------------- lens ----------------
 export type Dof = { f: number; dur?: number; cInf: number; focus?: (f: number) => V3 };
-const eye = (p: V3, h = 1.85): (() => V3) => () => [p[0], p[1] + h, p[2]];
+const at = (p: () => AutoPos, h = 1.0) => (): V3 => { const q = p(); return [q.x, D0 + h, q.z]; };
 export const DOF: Dof[] = [
-  { f: 0, cInf: 0 },                                     // hook wides
-  { f: 206, cInf: 12, focus: eye(KING_AT, 1.95) },       // king MS
-  { f: 281, cInf: 0 },                                   // hull side
-  { f: 419, cInf: 12, focus: eye(BUILDER_AT, 1.8) },     // shipbuilder MS
-  { f: 499, cInf: 11, focus: () => { const a = AD(); return [a[0], a[1] + 1.8, a[2]]; } }, // admiral
-  { f: 567, cInf: 0 },                                   // the test (wide, readable)
-  { f: 836, cInf: 13, focus: () => { const a = AD(); return [a[0], a[1] + 1.85, a[2]]; } },
-  { f: 910, cInf: 0 },                                   // launch, salute, aerials
-  { f: 1012, cInf: 8 },                                  // guns CU (focus = look)
-  { f: 1034, cInf: 0 },
-  { f: 1133, cInf: 10 },                                 // flooding gun ports
-  { f: 1181, cInf: 0 },                                  // deadpan wides
-  { f: 1397, cInf: 7, focus: () => [BOAT_AT[0], 1.5, BOAT_AT[2]] }, // rowing boat
-  { f: 1530, cInf: 0 },
-  { f: 1628, cInf: 10, focus: () => [TABLE_AT[0], D0 + 1.4, TABLE_AT[2] - 0.8] }, // judges
-  { f: 1684, cInf: 13 },                                 // empty stool (focus = look)
-  { f: 1735, cInf: 9, focus: () => [TABLE_AT[0], D0 + 1.4, TABLE_AT[2] - 0.8] },
-  { f: 1783, cInf: 13, focus: eye(KING_INQ, 1.95) },     // king MS
-  { f: 1809, cInf: 0 },                                  // raising (wide)
-  { f: 1896, cInf: 6 },                                  // visitors (mild)
-  { f: 2003, cInf: 0 },                                  // empty deck
+  { f: 0, cInf: 0 },
+  { f: 108, cInf: 12, focus: at(() => B(2, 150)) },
+  { f: 205, cInf: 12, focus: () => [BX0 - 0.3, D0 + 1.1, ZJ] },
+  { f: 311, cInf: 14, focus: at(() => B(4, 330), 0.85) },
+  { f: 418, cInf: 10 },
+  { f: 440, cInf: 0 },
+  { f: 487, cInf: 14, focus: () => [BX0, D0 + 1.45, ZB] },
+  { f: 564, cInf: 7 },                                               // chase: background streaks soft
+  { f: 648, cInf: 0 },
+  { f: 779, cInf: 11 },
+  { f: 838, cInf: 12 },
+  { f: 977, cInf: 0 },
+  { f: 1041, cInf: 13 },
+  { f: 1134, cInf: 0 },
+  { f: 1231, cInf: 12 },
+  { f: 1256, cInf: 9, focus: () => [68, D0 + 1.0, LANE.sea] },
+  { f: 1312, cInf: 14 },
+  { f: 1409, cInf: 0 },
+  { f: 1468, cInf: 6 },
+  { f: 1620, cInf: 12 },
+  { f: 1688, cInf: 14 },
+  { f: 1772, cInf: 5 },
+  { f: 1963, cInf: 15 },
+  { f: 2034, cInf: 14 },
+  { f: 2209, cInf: 6 },
+  { f: 2262, cInf: 0 },
 ];
 export const dofAt = (f: number) => {
   let i = 0; while (i + 1 < DOF.length && f >= DOF[i + 1].f) i++;
@@ -308,8 +293,5 @@ export const dofAt = (f: number) => {
 };
 export const focusAt = (id: number, f: number): V3 => { const d = dofAt(f); return d.focus ? d.focus(f) : camAt(id, f).look; };
 
-/** near framing objects (Kenney / cartoon plants via build.ts kitClone): visible a <= f < b */
 export type Fg = { a: number; b: number; kit: string; pos: V3; s?: number; yaw?: number };
-export const FOREGROUND: Fg[] = [
-  { a: 1628, b: 1684, kit: "plant_bushDetailed", pos: [TABLE_AT[0] + 2.6, D0, -31.4], s: 1.0, yaw: 0.8 }, // inquiry, bottom-right
-];
+export const FOREGROUND: Fg[] = [];

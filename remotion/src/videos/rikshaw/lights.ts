@@ -61,3 +61,37 @@ export const LOOK: Record<"day" | "golden", WorldLook> = {
     sat: 1.1,
   },
 };
+
+// ---------------- Rikshaw Love: time-of-day moods on top of the two base presets ----------------
+// The base preset (day / golden) still drives the grade, card shading and shadow style; a mood adjusts the sun,
+// key colour/strength, shade, saturation, sky, fog and sea so the day reads 9:30 -> noon -> haze -> 5:20 -> garage -> 6 pm.
+export type Mood = "morning" | "noon" | "haze" | "warm" | "garage" | "garageGold" | "golden";
+const mulC = (a: C3, b: C3): C3 => [a[0] * b[0], a[1] * b[1], a[2] * b[2]];
+export const moodLight = (L: LightPreset, m: Mood): LightPreset => {
+  switch (m) {
+    case "morning": return { ...L, el: 24, az: 60, lit: mulC(L.lit, [1.0, 0.98, 0.93]), sunCol: "#fff0d2", fogNear: 40, fogFar: 380 };
+    case "noon": return { ...L, el: 74, az: 40, lit: mulC(L.lit, [1.08, 1.06, 1.0]), shade: mulC(L.shade, [1.12, 1.12, 1.1]), fogNear: 60, fogFar: 420 };
+    case "haze": return { ...L, el: 40, az: 70, lit: mulC(L.lit, [0.78, 0.78, 0.8]), shade: mulC(L.shade, [1.25, 1.25, 1.2]), lift: mulC(L.lift, [1.6, 1.6, 1.4]),
+      fog: "#cbc5ba", fogNear: 18, fogFar: 170, sunI: L.sunI * 0.7 };
+    case "warm": return { ...L, el: 16, az: 70, lit: [1.62, 1.08, 0.56], shade: [0.2, 0.19, 0.33], fogNear: 60, fogFar: 420, sunI: L.sunI * 1.1 };
+    case "garage": return { ...L, el: 30, az: 110, lit: [0.7, 0.72, 0.8], shade: [0.1, 0.12, 0.22], lift: [0.05, 0.06, 0.12], sunI: L.sunI * 0.35, hemiI: 0.25,
+      charTint: [0.82, 0.88, 1.0], fog: "#2a3346", fogNear: 30, fogFar: 200 };
+    case "garageGold": return { ...L, el: 10, az: 165, lit: [1.75, 1.15, 0.6], shade: [0.16, 0.14, 0.26], sunI: L.sunI * 1.2, hemiI: 0.4,
+      charTint: [1.0, 0.82, 0.62], fog: "#5a4048", fogNear: 30, fogFar: 220 };
+    default: return L;
+  }
+};
+export const moodLook = (K: WorldLook, m: Mood): WorldLook => {
+  switch (m) {
+    case "morning": return { ...K, sat: 1.06, sky: { c: ["#d6e6f2", "#b8d6ef", "#8ab9e8", "#68a2e0", "#4a86d4"], e: [0, 3, 8, 16, 40] },
+      water: { ...K.water, near: "#2fb0be", mid: "#2490c0", far: "#7fb4d8", crest: "#bff0f4" } };
+    case "noon": return { ...K, sat: 1.14, sky: { c: ["#a9c9ee", "#7fb2ec", "#4f8fe0", "#3778d6", "#2560c4"], e: [0, 3, 8, 16, 40] } };
+    case "haze": return { ...K, sat: 0.72, sky: { c: ["#d8d2c6", "#cfccc4", "#bfc1c6", "#aeb5c2", "#9aa6bb"], e: [0, 3, 8, 16, 40] },
+      water: { ...K.water, near: "#5f8f98", mid: "#6a8d9c", far: "#a9aeb2", crest: "#c8d6d8", trough: "#4a6670" } };
+    case "warm": return { ...K, sat: 1.1, sky: { c: ["#ffd79a", "#ffc583", "#f6ad7e", "#d99b8e", "#9c88a0"], e: [0, 4, 10, 20, 40] },
+      water: { ...K.water, near: "#2a5486", mid: "#4a78a6", far: "#e8b88e", crest: "#f0c49a", glint: "#fff0c8" } };
+    case "garage": return { ...K, sat: 0.85 };
+    case "garageGold": return { ...K, sat: 1.12 };
+    default: return K;
+  }
+};

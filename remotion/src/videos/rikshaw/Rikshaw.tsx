@@ -1,4 +1,4 @@
-// "Thirty Sailors and a Gust of Wind" (the Vasa, 1628): forked from the bridge short; same world/post architecture.
+// "Rikshaw Love" (fiction, the user's own story): forked from the Vasa short; same world/post architecture.
 // One three.js world (world.ts) posed per frame from the story timeline (story.ts). Post chain (look-match pass):
 //   InkPass (world ink lines, own pass) -> lens blur pre + main (thin-lens DOF per shot from dofAt) ->
 //   [bloom (emissive only) + NEUTRAL tone mapping + colour grade] (one merged EffectPass), MSAA 4.
@@ -20,7 +20,7 @@ import { GradeEffect, GRADES, GRADE_STRENGTH, gradeFor } from "./grade";
 import { Kit } from "./build";
 import { TOTAL, FLASH_AT, SHOTS, layersAt, dofAt } from "./story";
 
-export const VASA_FRAMES = TOTAL;
+export const RIKSHAW_FRAMES = TOTAL;
 
 /** A/B switches for test stills only (Remotion inputProps `{ post: { ink: false, ... } }`); everything is on by default. */
 type PostToggles = { ink: boolean; lens: boolean; pre: boolean; bloom: boolean; grade: boolean; grain: boolean };
@@ -41,7 +41,7 @@ const fwd = new THREE.Vector3(), fpt = new THREE.Vector3();
 
 const useKit = () => {
   const [kit, setKit] = useState<Kit | null>(null);
-  const [handle] = useState(() => delayRender("vasa kit"));
+  const [handle] = useState(() => delayRender("rikshaw kit"));
   useEffect(() => { loadKit().then((k) => { setKit(k); continueRender(handle); }); }, [handle]);
   return kit;
 };
@@ -107,7 +107,7 @@ const ShotView: React.FC<{ id: number; kit: Kit; alpha: number }> = ({ id, kit, 
   );
 };
 
-export const VasaShort: React.FC = () => {
+export const RikshawShort: React.FC = () => {
   const f = useCurrentFrame();
   const kit = useKit();
   if (!kit) return null;
