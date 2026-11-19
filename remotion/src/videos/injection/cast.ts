@@ -334,13 +334,13 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
     if (Math.floor(f / 6) % 2 === 0) out.fx.push({ key: "drop", cw: 64, ch: 64, draw: (p) => p.ell(32, 32, 10, 14, "#7fd0ff", 3), x: hnd[0] + 0.62, y: 1.62, z: hnd[2] - 0.18, w: 0.05, h: 0.05 });
   }
   if (id === 31 || id === 51) {
-    const hip: V3 = [0.25, 0.86, 0], u = (f - s.a) / Math.max(1, s.b - s.a);
+    const hip: V3 = [0.18, 0.9, 0], u = (f - s.a) / Math.max(1, s.b - s.a);
     const dn = id === 31 ? 0.35 + 0.05 * Math.sin(t * 5) : u < 0.25 ? 0.45 - 1.6 * u : u < 0.85 ? 0.05 : 0.05 + 2.5 * (u - 0.85);
     const pk = id === 51 ? clamp01((u - 0.3) / 0.45) : 0;
     const to = tv.set(cam.pos.x - hip[0], cam.pos.y - hip[1], cam.pos.z - hip[2]).normalize();
-    syringe(out, [hip[0] + to.x * 0.3, hip[1] + to.y * 0.3 + dn + 0.13, hip[2] + to.z * 0.3], 0.5, -Math.PI / 2 + 0.18, pk);
+    syringe(out, [hip[0] + to.x * 0.62, hip[1] + to.y * 0.62 + dn + 0.13, hip[2] + to.z * 0.62], 0.4, -Math.PI / 2 + 0.18, pk);
     const fb = f - (s.a + Math.round(0.25 * (s.b - s.a)));
-    if (id === 51 && fb >= 0 && fb < 8) { const v = fb / 8; out.fx.push({ key: `burst${q(v, 30)}`, cw: 500, ch: 500, draw: (p) => fxBurst(p, q(v, 30)), x: hip[0] + to.x * 0.32, y: hip[1] + to.y * 0.32 + 0.02, z: hip[2] + to.z * 0.32, w: 0.4, h: 0.4 }); }
+    if (id === 51 && fb >= 0 && fb < 8) { const v = fb / 8; out.fx.push({ key: `burst${q(v, 30)}`, cw: 500, ch: 500, draw: (p) => fxBurst(p, q(v, 30)), x: hip[0] + to.x * 0.6, y: hip[1] + to.y * 0.6 + 0.02, z: hip[2] + to.z * 0.6, w: 0.3, h: 0.3 }); }
   }
   // the shot after the needle: stars over the patient's head
   if (id === 52 || id === 53) {

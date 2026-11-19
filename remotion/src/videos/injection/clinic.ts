@@ -66,7 +66,7 @@ export const buildClinic = (root: THREE.Object3D) => {
   const [cx, cy, cz] = COUCH, L = 2.0, Wc = 0.7;
   const pad = lam("ijPad", () => ({ color: "#8e6f86" })), chrome = lam("ijChrome", () => ({ color: "#c9cdd4" }));
   b.add(boxGeo(V(cx - L / 2, cy - 0.12, cz - Wc / 2), V(cx + L / 2, cy, cz + Wc / 2)), pad);
-  b.add(new THREE.BoxGeometry(0.42, 0.09, 0.5).translate(cx - L / 2 + 0.26, cy + 0.045, cz), lam("ijPillow", () => ({ color: "#f8f6ee" }))); // flat pillow
+  b.add(new THREE.BoxGeometry(0.42, 0.05, 0.5).translate(cx - L / 2 + 0.26, cy + 0.025, cz), lam("ijPillow", () => ({ color: "#f8f6ee" }))); // flat pillow
   b.add(boxGeo(V(cx - L / 2 + 0.5, cy + 0.001, cz - 0.24), V(cx + L / 2, cy + 0.006, cz + 0.24)), lam("ijPaper", () => ({ color: "#f8f6ee" })));
   for (const dx of [-L / 2 + 0.12, L / 2 - 0.12]) for (const dz of [-Wc / 2 + 0.08, Wc / 2 - 0.08])
     b.add(new THREE.CylinderGeometry(0.03, 0.03, cy - 0.12, 8).translate(cx + dx, (cy - 0.12) / 2, cz + dz), chrome);
