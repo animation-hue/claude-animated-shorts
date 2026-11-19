@@ -1,5 +1,7 @@
 # Rikshaw Love — picture LOCKED 2026-11-19 (Opus max verifier round 3: lock = yes)
 
+**DELIVERED + ACCEPTED 2026-11-19:** `remotion/out/rikshaw/rikshaw_love_2k.mp4` rendered on the user's GPU PC (1440x2560, 2340 f, 78.00 s, ~5 min render).
+
 Fiction short (the user's own story), skill FICTION mode. 78.00 s, 2340 frames. Composition `RikshawShort2K` (1440x2560).
 Verifier scores: round 1 7/7/6/7/6/7/6/7 -> round 2 8/7/6/8/8/7/7/8 (colour arc, ink, textures, characters, emotion, depth,
 composition, story) -> round 3 lock.
