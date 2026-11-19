@@ -1,0 +1,3 @@
+voice/*.wav
+!voice/voice.wav
+voice/preview_*.mp3
