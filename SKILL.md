@@ -111,7 +111,10 @@ the story is the user's, and the short is built to make the viewer FEEL, not to 
 4. **Non-human casts.** If the cast are vehicles/animals/objects, draw them as the same flat ink cards (cast.ts) with
    faces: headlights = eyes (lids for blinks), grille/bumper = mouth, body tilt/shiver = posture; humans (drivers,
    mechanic) are drawn into or beside the card. Keep them readable at 0.5 still size.
-5. **Approval gate, then "just do it".** Send SCRIPT.md (beat sheet + VO + cast + look notes); after the user approves,
+5. **Lessons from "Rikshaw Love"** (see shorts/rikshaw/NOTES.md): vehicle eyes need lids in a contrasting colour and a
+   light mouth plate; side-view cabins must be opaque; plain contact shadows under vehicles; fill every horizon; check
+   the narrator's pace first (slow warm voices run ~2.4 words/s).
+6. **Approval gate, then "just do it".** Send SCRIPT.md (beat sheet + VO + cast + look notes); after the user approves,
    run the whole pipeline without further questions, saving and pushing after every step.
 
 ## Final look values (bridge after 4 verifier rounds; all in `templates/bridge/`)

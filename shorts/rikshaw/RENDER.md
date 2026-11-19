@@ -1,7 +1,7 @@
 # Rikshaw Love — final render (on the GPU PC, Windows PowerShell)
 
 Picture + sound: 78.00 s, 2340 frames, 30 fps. Sound: `shorts/rikshaw/audio/mix.wav` (-15 LUFS, -1.2 dBTP).
-Render only after the picture is LOCKED (see the chat / NOTES.md).
+Picture LOCKED 2026-11-19 (verifier round 3). Ready to render.
 
 ```powershell
 cd D:\Projects\claude-animated-shorts
