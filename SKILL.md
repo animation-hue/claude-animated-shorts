@@ -1,6 +1,6 @@
 ---
 name: cartoon-3d-short
-description: Make a ~55-70 s vertical cartoon story short in the "2D characters in a colourful 3D world" style (flat bean-head cartoon cards with ink outlines, painted 3D town/world with black ink lines, saturated sky, depth-of-field backgrounds, gliding cameras, voice narration, synthesized SFX + march-style music), rendered with three.js inside Remotion. Proven on "The Bridge That Fell for a Song" (2026-10-31). Use when the user asks for another video "like the bridge video", "like the soldiers/bridge short", "in that cartoon 3D style", a history/science story short with cartoon characters in 3D, or says "use the cartoon short skill".
+description: Make a ~55-70 s vertical cartoon story short in the "2D characters in a colourful 3D world" style (flat bean-head cartoon cards with ink outlines, painted 3D town/world with black ink lines, saturated sky, depth-of-field backgrounds, gliding cameras, voice narration, synthesized SFX + march-style music), rendered with three.js inside Remotion. Two story modes: FACT shorts (true history/science stories, jokes are researched facts; proven on "The Bridge That Fell for a Song" and "Thirty Sailors and a Gust of Wind" - the Vasa) and FICTION shorts (the user's own story, emotion-led; see "Fictional story workflow"). Use when the user asks for another video "like the bridge / Vasa video", "in that cartoon 3D style", a history/science story short with cartoon characters in 3D, gives their own story/synopsis to animate in this style, or says "use the cartoon short skill".
 ---
 
 # Cartoon 3D story short (three.js + Remotion)
@@ -18,10 +18,10 @@ The style reference is a channel studied privately (`references/`: STYLE_BIBLE.m
 User rules that apply:
 - No captions or labels in the video.
 - English only.
-- Voice: one steady tone.
-- Jokes are researched real facts.
+- Voice: one steady tone (fiction: the same steady narrator, a touch warmer; the feelings live in faces, light and music).
+- FACT mode: jokes are researched real facts. FICTION mode: the story is the user's; jokes come from character and visual gags. Real-world details shown (places, landmarks, local look, time of sunset) are still checked.
 - Standard mix: music +3 dB, SFX -6 dB, voice unchanged.
-- Final export 2K vertical: 1440x2560, `--scale 1.3333`.
+- Final export 2K vertical: 1440x2560 as a NATIVE composition (`<Name>2K`, width 1440 / height 2560, canvas reads useVideoConfig). Remotion 4 refuses `--scale 1.3333` on 1080x1920 (2559.94 px is not an integer).
 - Opus max verifies every check.
 - Save after every step.
 - "Just do it" once the script is approved.
@@ -78,6 +78,41 @@ User rules that apply:
     - QA: `python scripts/short_qa.py final.mp4 out/<name>/qa shots.json` checks every frame for black, white, frozen and pop frames, plus loudness and sheets.
     - Fix anything it finds, then run a deep Opus audit.
 11. **Deliver.** SendUserFile the final mp4, update memory, write notes.
+
+## Fictional story workflow (the user's own story, emotion-led)
+Same style, same tech, same pipeline steps 3-11 as above (voice → shot plan → world → characters → post → sound →
+look checks + Opus max verifier rounds → native 2K render on the GPU PC → QA → deliver). What changes is steps 1-2:
+the story is the user's, and the short is built to make the viewer FEEL, not to teach. Proven start: "Rikshaw Love".
+
+1. **Intake (never rewrite the user's story behind their back).** From the synopsis pull out: the hero and what they
+   want, the other characters, the place, the time-of-day arc, and any must-keep moments or lines. Ask only what
+   blocks the script (e.g. names, who may appear). Respect cast limits they give ("autos only" = no other vehicles).
+2. **Emotional beat sheet (60-66 s, ~230-245 words).** The fiction counterpart of the fact beat formula:
+   - **Hook** (0-5 s): the feeling in one line ("...fell in love").
+   - **Meet / want**: the spark, shown on the hero's face (eyes widen, a shiver, a skipped beat).
+   - **Lose**: the obstacle takes the other one away.
+   - **Search**: try and fail, three escalating comic misses (wrong one, wrong one, almost).
+   - **Hope**: the other one is found again.
+   - **Fall**: a setback born from the want itself (cartoon, never cruel: no blood, no real harm).
+   - **Low point**: quiet, alone, the smallest sound; the narrator says the one sad truth ("He never even said hello.").
+   - **Magic**: the other one comes to them; light turns warm/golden; the world goes still.
+   - **Callback ending**: a small gesture set up earlier (a flicker, a flower, a horn) repeated by both; last line short.
+   Write it for the ear: short sentences, present feelings, never describe what the picture already shows.
+3. **Emotion toolkit (plan it in the shot plan, per beat):**
+   - Faces: an expression per beat for every character (toon.ts Expr), blinks, a reaction 0-3 f before its word.
+   - Light = mood: a time-of-day arc in lights.ts presets (e.g. morning → noon glare → rain/grey → golden hour);
+     golden is reserved for love/magic; the low point is the coolest, dimmest frame.
+   - Music: ONE love leitmotif (music.py) varied per beat: tender (musicbox/vibes) at the meet, comic march for the
+     chase, sad pizz/pad for the search and low point, silence on the fall, full warm tutti for the magic, soft button
+     on the last word.
+   - Camera: CUs on eyes for feelings, wide and empty for loneliness, slow push-ins (0.15-0.3 %/f) for tenderness,
+     cuts + flip kicks only on the fall; the magic moment gets the longest, slowest hold-and-creep of the film.
+   - Sound: the hero's own "voice" is SFX (engine putt, horn squeak, flicker click), never words.
+4. **Non-human casts.** If the cast are vehicles/animals/objects, draw them as the same flat ink cards (cast.ts) with
+   faces: headlights = eyes (lids for blinks), grille/bumper = mouth, body tilt/shiver = posture; humans (drivers,
+   mechanic) are drawn into or beside the card. Keep them readable at 0.5 still size.
+5. **Approval gate, then "just do it".** Send SCRIPT.md (beat sheet + VO + cast + look notes); after the user approves,
+   run the whole pipeline without further questions, saving and pushing after every step.
 
 ## Final look values (bridge after 4 verifier rounds; all in `templates/bridge/`)
 Start every new short from `templates/bridge/` (copy to `src/videos/<name>/`): the look lives in these values, the
