@@ -317,7 +317,9 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
     personAt(out, cam, "V", t);
     work(out, t);
   }
-  for (let i = 0; i < BOARS; i++) boar(out, cam, i, t, false);
+  // face close-ups show only the boar being filmed (the herd stands where the lens is)
+  const only = s.crowd.startsWith("boarcu") ? Number(s.crowd.slice(6)) : -1;
+  for (let i = 0; i < BOARS; i++) if (only < 0 || i === only) boar(out, cam, i, t, false);
   // the first two nights: only the corn moves - shaking leaf lines over the stalks, nobody seen
   if ((t >= 65.5 && t < 72.5) || (t >= 128.6 && t < 131.6)) for (let k = 0; k < 5; k++) {
     const ph = t * 7 + k * 1.9, x = 9.5 + 1.4 * k + 0.6 * Math.sin(t * 0.8 + k), z = 7 + 2.6 * k;

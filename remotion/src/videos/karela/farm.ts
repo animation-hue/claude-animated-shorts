@@ -117,12 +117,12 @@ export const buildFarm = (root: THREE.Object3D, rays: Ray[]): Farm => {
     if (!nearCam(x, z, 2.5)) prop(b, {}, "tree_oak", x, 0, z, h, x);
   // the scrub + forest east and north (where the boars live)
   for (let k = 0; k < 70; k++) {
-    const east = k < 40, x = east ? U(19, 40) : U(-14, 40), z = east ? U(-2, 30) : U(27, 40);
+    const east = k < 40, x = east ? U(23, 42) : U(-14, 40), z = east ? U(-2, 30) : U(27, 40);
     if (nearCam(x, z, 2)) continue;
     if (r() < 0.55) prop(b, {}, ["tree_fat", "tree_oak", "tree-high-round"][Math.floor(r() * 3)], x, 0, z, U(8, 14), r() * 6);
     else addVeg(b, "bush", x, 0, z, U(1.2, 2.2), k * 11);
   }
-  for (const [x, z, h] of [[18.5, 13, 1.8], [18, 10.5, 1.5], [19.2, 15.5, 2.0], [17.8, 17.8, 1.4]] as const) addVeg(b, "bush", x, 0, z, h, x * z);
+  for (const [x, z, h] of [[23.5, 13, 1.8], [23, 9.5, 1.5], [24.2, 16.5, 2.0], [22.8, 19.0, 1.4]] as const) addVeg(b, "bush", x, 0, z, h, x * z);
   // far hills
   for (let k = 0; k < 12; k++) {
     const a = (k / 12) * Math.PI * 2, d = 230 + 40 * (k % 3);
@@ -175,8 +175,9 @@ export const buildFarm = (root: THREE.Object3D, rays: Ray[]): Farm => {
       const x = ax + ((cx - ax) * s) / L, z = az + ((cz - az) * s) / L;
       bv.add(new THREE.SphereGeometry(1, 10, 8), vleaf, new THREE.Matrix4().compose(V(x, 0.42 + U(-0.05, 0.08), z), new THREE.Quaternion(), V(U(0.3, 0.42), U(0.28, 0.4), U(0.3, 0.42))));
       if (r() < 0.75) {
-        const o = U(0.22, 0.34), side = r() < 0.5 ? 1 : -1;
-        bv.add(karelaGeo, lam("kKarela", () => ({ color: "#5aa83c" })), new THREE.Matrix4().compose(V(x + nx * o * side, U(0.32, 0.55), z + nz * o * side), Q(U(-0.3, 0.3), U(0, 6.28), U(-0.3, 0.3)), V(1, 1, 1)));
+        // hanging on the OUTER face of the vine, clear of the leaves, a little bigger than life so it reads
+        const o = U(0.42, 0.52), side = -1;
+        bv.add(karelaGeo, lam("kKarela", () => ({ color: "#7cc24a" })), new THREE.Matrix4().compose(V(x + nx * o * side, U(0.26, 0.42), z + nz * o * side), Q(U(-0.25, 0.25), U(0, 6.28), U(-0.25, 0.25)), V(1.4, 1.4, 1.4)));
       }
     }
   }

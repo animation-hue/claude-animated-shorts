@@ -75,7 +75,7 @@ export const boarAt = (i: number, t: number): BoarState | null => {
   // the boars are only ever seen in the last night (the first two nights show only the corn moving)
   if (t < 249.2 + d || t > 279) return null;
   const T0 = 249.2 + d, arrive = 255.4 + d, turn = 267.8 + 0.25 * i;
-  const zz = 13 + oz, xs = 22 + ox, xv = VINE_X + 0.75 + 0.45 * ox;
+  const zz = 13 + oz, xs = 23.5 + ox, xv = VINE_X + 0.75 + 0.45 * ox;
   if (t < arrive) { const u = (t - T0) / (arrive - T0); return { p: [lerp(xs, xv, u), 0, zz], dir: -1, face: "plain", karela: 0, walk: 1, head: 0.1 }; }
   if (t < turn) {
     const bite = i === 0 ? 257.4 : 260.9 + 0.55 * i, bitter = i === 0 ? 260.4 : bite + 1.4;
@@ -147,6 +147,8 @@ const hV = (t: number, h = 1.42): V3 => add(Vd(t), [0, h, 0]);
 const two = (t: number, y = 1.2): V3 => { const a = R(t), b = Vd(t); return [(a[0] + b[0]) / 2, y, (a[2] + b[2]) / 2]; };
 const FC: V3 = [(FIELD[0] + FIELD[1]) / 2, 1.0, (FIELD[2] + FIELD[3]) / 2];
 const boarLead = (t: number): V3 => { const b = boarAt(0, t); return b ? add(b.p, [0, 0.55, 0]) : [VINE_X + 0.8, 0.55, 13]; };
+/** a boar's head (it faces -x at the vines: the snout is ~0.65 m west of the card centre) */
+const boarHeadAt = (i: number, t: number): V3 => { const b = boarAt(i, t); return b ? add(b.p, [0.72 * b.dir, 0.42, 0]) : [VINE_X + 0.2, 0.42, 13]; };
 const glide = (a: Cam, b: Cam, u: number): Cam => ({ pos: mixV(a.pos, b.pos, smooth(u)), look: mixV(a.look, b.look, smooth(u)), fov: lerp(a.fov, b.fov, smooth(u)), roll: lerp(a.roll, b.roll, smooth(u)) });
 const CU = 28, MS = 30, TWO = 32, WIDE = 38;
 
@@ -225,12 +227,12 @@ const PLANS: Plan[] = [
   { t: 249.2, mood: "night", cam: (u, t) => ({ pos: add(boarLead(t), [-1.0, -0.2, -4.2]), look: add(boarLead(t), [0.4, 0.15, 0]), fov: 34, roll: 0 }), dof: 6, focus: (t) => boarLead(t), kind: "boars" },
   { t: 253.6, mood: "night", cam: (u) => orbit([VINE_X + 1.2, 0.6, 13], 3.8 - 0.6 * u, 130, 4, 34), dof: 6, focus: () => [VINE_X + 1.2, 0.6, 13], kind: "boars" },
   // ---- 20 a karela bite... the bitter face
-  { t: 257.4, mood: "night", cam: (u) => orbit(add(boarLead(257.4), [-0.4, 0.15, 0]), 2.6 - 0.2 * u, 150, 2, 30), dof: 12, focus: () => add(boarLead(257.4), [-0.4, 0.15, 0]), kind: "boars" },
-  { t: 260.4, mood: "night", cam: (u) => orbit(add(boarLead(260.4), [-0.4, 0.15, 0]), 2.3 - 0.15 * u, 165, 0, 28, 0.03 * Math.sin(u * 40)), dof: 13, focus: () => add(boarLead(260.4), [-0.4, 0.15, 0]), kind: "boars" },
+  { t: 257.4, mood: "night", cam: (u) => orbit(boarHeadAt(0, 257.4), 2.9 - 0.2 * u, 118, 6, 30), dof: 12, focus: () => boarHeadAt(0, 257.4), kind: "boarcu0" },
+  { t: 260.4, mood: "night", cam: (u) => orbit(boarHeadAt(0, 260.4), 2.6 - 0.15 * u, 122, 5, 28, 0.03 * Math.sin(u * 40)), dof: 13, focus: () => boarHeadAt(0, 260.4), kind: "boarcu0" },
   { t: 262.2, mood: "night", cam: (u) => orbit([VINE_X + 1.6, 0.6, 13], 4.6, 140, 6, 34), dof: 5, focus: () => [VINE_X + 1.6, 0.6, 13], kind: "boars" },
-  { t: 266.2, mood: "night", cam: (u) => { const b = boarAt(2, 266.2)!; return orbit(add(b.p, [-0.4, 0.7, 0]), 2.3, 155, 0, 28); }, dof: 13, focus: () => { const b = boarAt(2, 266.2)!; return add(b.p, [-0.4, 0.7, 0]); }, kind: "boars" },
+  { t: 266.2, mood: "night", cam: (u) => orbit(boarHeadAt(1, 266.2), 2.6, 120, 5, 28), dof: 13, focus: () => boarHeadAt(1, 266.2), kind: "boarcu1" },
   // ---- 21 they run; the field is safe
-  { t: 268.2, mood: "night", cam: (u) => orbit([VINE_X + 4, 0.8, 13], 8.5, 100, 8, 36), dof: 3, kind: "boars" },
+  { t: 268.2, mood: "night", cam: (u, t) => { const c = boarLead(Math.min(t, 273)); return { pos: [c[0] - 1.5, 1.6, c[2] - 7.5], look: add(c, [0.8, 0.1, 0]), fov: 36, roll: 0 }; }, dof: 3, focus: (t) => boarLead(Math.min(t, 273)), kind: "boars" },
   { t: 275.6, mood: "night", cam: (u) => ({ pos: [lerp(16, 10, u), 4.0, -5], look: [5, 1.4, 12], fov: 38, roll: 0 }), dof: 0, kind: "wide" },
   // ---- 22 sunrise: the whole field safe
   { t: 283.4, mood: "sunrise", cam: (u) => glide({ pos: [4, 26, -30], look: [4, 1, 12], fov: 40, roll: 0 }, { pos: [3.5, 5, -6], look: [3.5, 1.2, 4], fov: 38, roll: 0 }, u), dof: 0, kind: "wide" },
