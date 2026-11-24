@@ -57,11 +57,11 @@ export const fieldAt = (t: number): FieldState => {
   if (t < 72.5) return S({ golden: true });
   if (t < 99.0) return S({ destroyed: true });
   if (t < 107.5) return S({ bare: true, seedlings: t >= 105.5 });
-  if (t < 115.0) return S({ bare: true, young: 0.06 + 0.94 * smooth((t - 107.5) / 7.3) });
+  if (t < 115.0) { const g = smooth((t - 107.5) / 7.3); return S({ bare: true, young: g < 0.35 ? 0 : 0.4 + 0.6 * (g - 0.35) / 0.65, seedlings: g < 0.35 }); }
   if (t < 131.6) return S({ young: 1 });
   if (t < 202.0) return S({ destroyed: true });
   if (t < 214.2) return S({ bare: true, vines: t >= 204.5 ? 0.15 : 0, seedlings: t >= 209 });
-  if (t < 224.6) { const g = smooth((t - 214.2) / 10.3); return S({ bare: true, young: 0.06 + 0.94 * g, vines: 0.15 + 0.85 * g }); }
+  if (t < 224.6) { const g = smooth((t - 214.2) / 10.3); return S({ bare: true, young: g < 0.3 ? 0 : 0.4 + 0.6 * (g - 0.3) / 0.7, seedlings: g < 0.3, vines: 0.15 + 0.85 * g }); }
   return S({ golden: true, vines: 1 });
 };
 
@@ -112,8 +112,8 @@ export const exprAt = (who: "R" | "V", t: number): string => {
   const L = LINES.find((l) => l[2] - 0.3 <= t && t < l[3] + 0.8);
   const id = L ? L[0] : "";
   if (who === "R") {
-    const m: Record<string, string> = { R1: "laugh", V1: "smile_closed", R2: "grin", V2: "relief", R3: "shock", V3: "shock", V4: "nervous", R4: "pained", R5: "grin", V5: "smile",
-      R6: "pained", V6: "nervous", V7: "nervous", R7: "shock", V8: "neutral", R8: "nervous", V9: "shock", R9: "laugh", V10: "grin", R10: "laugh", V11: "smile_closed", R11: "relief_open",
+    const m: Record<string, string> = { R1: "laugh", V1: "smile_closed", R2: "grin", V2: "relief", R3: "shock", V3: "shock", V4: "nervous", R4: "nervous", R5: "grin", V5: "smile",
+      R6: "nervous", V6: "nervous", V7: "nervous", R7: "shock", V8: "neutral", R8: "nervous", V9: "shock", R9: "laugh", V10: "grin", R10: "laugh", V11: "smile_closed", R11: "relief_open",
       R12: "laugh", V12: "grin", R13: "relief_open", V13: "relief" };
     if (m[id]) return m[id];
     if (t < 26) return "smile_closed";

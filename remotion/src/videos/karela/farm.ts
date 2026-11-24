@@ -158,7 +158,10 @@ export const buildFarm = (root: THREE.Object3D, rays: Ray[]): Farm => {
     else if (k < 0.85) corn(bd, m4(V(jx, 0.04, jz), Q(U(1.2, 1.5), U(0, 6.28), 0)), h * U(0.6, 1.0), r, false);
     if (r() < 0.35) bd.add(COBG, lam("kCob", () => ({ color: COB })), m4(V(jx + U(-0.3, 0.3), 0.04, jz + U(-0.3, 0.3)), Q(Math.PI / 2, U(0, 6.28), 0)));
     if (r() < 0.25) bd.add(new THREE.SphereGeometry(1, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(U(0.2, 0.4), U(0.08, 0.14), U(0.2, 0.35)).translate(jx, 0, jz), lam("kClod", () => ({ color: "#6b4326" })));
-    if (r() < 0.5) bs.add(LEAFG[2], lam("kSeedling", () => ({ color: "#6fbf4a", side: THREE.DoubleSide })), m4(V(jx, 0.02, jz), Q(0, U(0, 6.28), 0.9), 0.4));
+    // a sprout: a short stem and two small leaves reaching up
+    const yaw = U(0, 6.28), sprout = lam("kSeedling", () => ({ color: "#6fc24a", side: THREE.DoubleSide }));
+    bs.add(STALKG, sprout, new THREE.Matrix4().compose(V(jx, 0, jz), new THREE.Quaternion(), V(0.6, 0.22, 0.6)));
+    for (const k of [0, 1]) bs.add(LEAFG[2], sprout, m4(V(jx, 0.12, jz), Q(0, yaw + k * Math.PI, -0.6), 0.28));
   }
   const fm = lam("kFurrowM", () => ({ map: soilTex(true) }));
   if (fm.map) { fm.map.wrapS = fm.map.wrapT = THREE.RepeatWrapping; fm.map.repeat.set(fw / 4, fd / 4); }
