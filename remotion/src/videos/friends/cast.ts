@@ -335,7 +335,7 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
     const sub = beat >= 0 ? Math.min(1, (t - hb[beat] + 0.12) / 0.35) : 0;
     const c = cam.pos, fw = cam.fwd ?? tv.set(0, 0, 1), at: V3 = [c.x + fw.x * 1.0, c.y + fw.y * 1.0 - 0.05, c.z + fw.z * 1.0];
     const solo = s.crowd === "hands3";
-    out.fx.push({ key: `hands|${beat}|${Math.round(sub * 12)}|${solo}`, cw: 800, ch: 480, draw: handsCard(Math.max(0, beat), sub, solo), x: at[0], y: at[1], z: at[2], w: 0.95, h: 0.57 });
+    out.fx.push({ key: `hands|${beat}|${Math.round(sub * 12)}|${solo}`, cw: 800, ch: 480, draw: handsCard(Math.max(0, beat), sub, solo), x: at[0], y: at[1], z: at[2], w: 0.36, h: 0.216 });
     return out;
   }
   // ---- Grandma's memory ----
@@ -384,7 +384,7 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
   if (t >= 44.8 && t < 47.2) out.fx.push({ key: "rustle", cw: 256, ch: 256, draw: lines, x: BUSH[0] + 0.1 * Math.sin(t * 40), y: 1.55, z: BUSH[2] - 0.5, w: 0.7, h: 0.7, rot: 0.15 * Math.sin(t * 30) });
   if (t >= 48.25 && t < 50.5) {
     const u = clamp01((t - 48.25) / 1.3), hop = (t * 2.2) % 1;
-    out.fx.push({ key: `rabbit${Math.round(hop * 10)}`, cw: 300, ch: 300, draw: (p) => rabbit(p, hop), x: BUSH[0] - 0.5 - 1.6 * u, y: 0.25, z: BUSH[2] - 0.6, w: 0.5, h: 0.5 });
+    out.fx.push({ key: `rabbit${Math.round(hop * 10)}`, cw: 300, ch: 300, draw: (p) => rabbit(p, hop), x: BUSH[0] - 0.5 - 1.0 * u, y: 0.25, z: BUSH[2] - 0.9 - 1.8 * u, w: 0.5, h: 0.5 });
   }
   if (t >= 58.2 && t < 61.0) {
     const u = (t - 58.2) / 2.8;

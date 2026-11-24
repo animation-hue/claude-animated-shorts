@@ -70,7 +70,7 @@ export const buildJungle = (root: THREE.Object3D, rays: Ray[]) => {
     const z = side * (3.2 + k * 3.4 + U(0, 2.4)), xx = x + U(-1, 1);
     if (clear(xx, z)) continue;
     plant(kinds[Math.floor(r() * kinds.length)], xx, z, U(9, 16), r() * 6, 2.5);
-    if (r() < 0.6) { const bh = U(1.0, 1.8); plant("plant_bushLarge", xx + U(-1, 1), z - side * U(0.6, 1.4), bh, r() * 6, bh); }
+    if (r() < 0.6) { const bh = U(1.0, 1.8), bz = z - side * U(0.6, 1.4); if (Math.abs(bz) > 5) plant("plant_bushLarge", xx + U(-1, 1), bz, bh, r() * 6, bh + 1.5); }
   }
   // deeper jungle walls (far, low detail) so every horizon is trees
   for (let x = -60; x <= 110; x += 6) for (const side of [-1, 1]) prop(b, {}, "tree_fat", x + U(-2, 2), 0, side * U(18, 30), U(13, 19), r() * 6);

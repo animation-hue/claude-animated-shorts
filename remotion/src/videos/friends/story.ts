@@ -12,7 +12,7 @@ const F = (t: number) => Math.round(t * FPS);
 
 // ---------------- places ----------------
 export const HUT: V3 = [-66, 0, 5.5];          // Grandma's hut (memory shot)
-export const BUSH: V3 = [12.6, 0, -2.3];      // the rustling bush (rabbit)
+export const BUSH: V3 = [13.6, 0, 4.2];      // the rustling bush (rabbit)
 export const PERCH: V3 = [14.6, 3.55, 2.6];   // the hornbill's branch
 export const TREE: V3 = [40, 0, 5.5];         // Ram's tree (trunk base)
 export const BRANCH: V3 = [38.85, 3.35, 5.3]; // where Ram sits
@@ -90,7 +90,7 @@ const PLANS: Plan[] = [
   { t: 3.4, mood: "morning", cam: (u, t) => orbit(two(t, 1.35), 4.2 - 0.5 * u, 8, 2, 40), dof: 7 },
   { t: 5.35, mood: "morning", cam: (u, t) => orbit(two(t, 1.15), 1.25 - 0.15 * u, 0, 6, 38, 0.03), dof: 14, kind: "hands1" },
   { t: 8.9, mood: "morning", cam: (u, t) => orbit(two(t, 1.4), 3.4 - 0.4 * u, -12, 4, 40), dof: 8 },
-  { t: 13.2, mood: "morning", cam: (u, t) => orbit(add(two(t, 1.6), [6, 0, 0]), 13 - 1.5 * u, -118, 8, 46), dof: 2, kind: "wide" },
+  { t: 13.2, mood: "morning", cam: (u, t) => orbit(two(t, 1.3), 9 - 1.0 * u, 102, 6, 44), dof: 3, kind: "wide" },
   { t: 18.7, mood: "morning", cam: (u, t) => orbit(head(R(t)), 2.0 - 0.25 * u, 28, 2, 36, -0.03), dof: 12, focus: (t) => head(R(t)) },
   { t: 23.1, mood: "morning", cam: (u, t) => orbit(head(S(t), 1.5), 2.0 - 0.25 * u, -28, 2, 36, 0.03), dof: 12, focus: (t) => head(S(t), 1.5) },
   { t: 26.15, mood: "morning", cam: (u, t) => orbit(two(t, 1.15), 1.25 - 0.15 * u, 0, 6, 38, -0.03), dof: 14, kind: "hands2" },
@@ -101,39 +101,39 @@ const PLANS: Plan[] = [
   // ---- three false alarms ----
   { t: 44.85, mood: "jungle", cam: (u) => orbit(add(BUSH, [0, 0.8, 0]), 3.2 - 0.6 * u, -20, 6, 38), dof: 9, focus: () => add(BUSH, [0, 0.8, 0]) },
   { t: 46.9, mood: "jungle", cam: (u, t) => orbit(head(R(t), 1.1), 3.2, -15, 0, 40, 0.06), dof: 8, focus: (t) => head(R(t)) },
-  { t: 48.2, mood: "jungle", cam: (u) => orbit(add(BUSH, [-1.1, 0.25, -0.4]), 1.6 - 0.2 * u, -30, 4, 36), dof: 12, focus: () => add(BUSH, [-1.1, 0.25, -0.4]) },
+  { t: 48.2, mood: "jungle", cam: (u) => orbit(add(BUSH, [-1.0, 0.3, -1.8]), 2.0 - 0.2 * u, -30, 4, 36), dof: 12, focus: () => add(BUSH, [-1.0, 0.3, -1.8]) },
   { t: 49.6, mood: "jungle", cam: (u, t) => orbit(two(t, 1.3), 5.5 - 0.6 * u, -60, 3, 40), dof: 6 },
   { t: 53.2, mood: "jungle", cam: (u, t) => orbit(head(R(t), 1.3), 3.6, 10, -4, 42, -0.06), dof: 8, focus: (t) => head(R(t)) },
   { t: 54.75, mood: "jungle", cam: (u, t) => orbit(head(S(t), 1.2), 1.9 - 0.2 * u, -30, 0, 36), dof: 12, focus: (t) => head(S(t), 1.4) },
   { t: 58.0, mood: "jungle", cam: (u, t) => ({ pos: add(two(t, 0.6), [-1.6, 0, -2.4]), look: add(two(t, 4.6), [1.5, 0, 1.2]), fov: 58, roll: 0.08 }), dof: 0 },
   { t: 60.95, mood: "jungle", cam: (u, t) => orbit(head(R(t), 1.6), 5.2, 15, -3, 44), dof: 6, focus: (t) => head(R(t)) },
-  { t: 64.95, mood: "jungle", cam: (u) => orbit(add(PERCH, [0, 0.4, 0]), 1.9 - 0.25 * u, -25, -4, 36), dof: 12, focus: () => add(PERCH, [0, 0.4, 0]) },
+  { t: 64.95, mood: "jungle", cam: (u) => orbit(add(PERCH, [0, 0.4, 0]), 2.7 - 0.3 * u, -25, -4, 36), dof: 12, focus: () => add(PERCH, [0, 0.4, 0]) },
   { t: 69.1, mood: "jungle", cam: (u, t) => orbit(head(S(t), 1.45), 2.0, -35, 0, 36), dof: 12, focus: (t) => head(S(t), 1.45) },
   { t: 70.45, mood: "jungle", cam: (u, t) => orbit(head(R(t), 1.5), 1.9, 30, 0, 36), dof: 12, focus: (t) => head(R(t)) },
   // ---- the bear ----
   { t: 71.65, mood: "dread", cam: (u) => orbit([45.2, 1.1, -2.4], 7.0 - 1.6 * u, -55, 3, 40), dof: 7, focus: () => [45.5, 1.0, -2.6] },
   { t: 75.5, mood: "dread", cam: (u, t) => orbit(add(B(t), [-1.0, 1.15, 0]), 2.4 - 0.4 * u, -62, -6, 38, -0.05), dof: 12, focus: (t) => add(B(t), [-1.0, 1.1, 0]) },
-  { t: 76.6, mood: "dread", cam: (u, t) => orbit(mid(two(t, 1.0), add(B(t), [0, 1.0, 0])), 10.5 + 1.2 * u, -8, 14, 44), dof: 3, kind: "wide" },
+  { t: 76.6, mood: "dread", cam: (u, t) => orbit(mid(two(t, 1.0), add(B(t), [0, 1.0, 0])), 9.5 + 1.0 * u, -96, 10, 44), dof: 3, kind: "wide" },
   { t: 79.2, mood: "dread", cam: (u, t) => orbit(two(t, 1.45), 3.0 - 0.15 * u, -40, 0, 40), dof: 9 },
   { t: 81.2, mood: "dread", cam: (u, t) => orbit(head(R(81.6), 1.1), 4.2, -30, 2, 42), dof: 7, focus: (t) => head(R(t), 1.1) },
   { t: 83.85, mood: "dread", cam: (u, t) => orbit([39.4, 1.9, 4.9], 5.2, -15, 4, 44), dof: 6, focus: (t) => head(R(t), 1.0) },
-  { t: 89.3, mood: "dread", cam: (u) => orbit(add(BRANCH, [0, 0.9, 0]), 2.4 - 0.3 * u, -10, -14, 38), dof: 11, focus: () => add(BRANCH, [0, 0.9, 0]) },
+  { t: 89.3, mood: "dread", cam: (u) => orbit(add(BRANCH, [0, 0.45, 0]), 3.2 - 0.3 * u, -10, -6, 38), dof: 11, focus: () => add(BRANCH, [0, 0.45, 0]) },
   { t: 92.7, mood: "dread", cam: (u, t) => orbit(head(S(t), 1.3), 6.5 - 2.6 * smooth(u), 20, 6, 42), dof: 8, focus: (t) => head(S(t), 1.45) },
   // ---- the memory: Grandma ----
   { t: 98.2, mood: "memory", cam: (u) => orbit(add(HUT, [0, 1.0, -2.2]), 3.2 - 0.4 * u, 12, 4, 40), dof: 9, focus: () => add(HUT, [0, 1.0, -2.2]), kind: "memory" },
   // ---- playing dead ----
   { t: 104.35, mood: "dread", cam: (u, t) => orbit([LIE_X, 0.5, 0], 6.0 - 0.5 * u, -20, 14, 42), dof: 6 },
-  { t: 107.15, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 1.6 - 0.2 * u, -5, 58, 38), dof: 12, focus: () => shyamHeadLying() },
-  { t: 110.1, mood: "dread", cam: (u, t) => orbit([LIE_X + 0.8, 0.8, 0.4], 5.4, -35, 6, 42), dof: 6, focus: (t) => add(B(t), [-1.0, 0.8, 0]) },
+  { t: 107.15, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 2.5 - 0.3 * u, -5, 58, 38), dof: 12, focus: () => shyamHeadLying() },
+  { t: 110.1, mood: "dread", cam: (u, t) => ({ pos: [LIE_X - 2.6, 0.55, -1.3], look: add(B(t), [0, 0.75, 0]), fov: 44, roll: 0.03 }), dof: 6, focus: (t) => add(B(t), [-1.0, 0.8, 0]) },
   { t: 112.0, mood: "dread", cam: (u) => orbit([LIE_X + 0.85, 0.35, 0.2], 1.7, -20, 12, 38), dof: 12, focus: () => [LIE_X + 0.85, 0.35, 0.2] },
   { t: 113.45, mood: "dread", cam: (u) => orbit([LIE_X + 0.1, 0.35, 0.1], 1.7, -15, 14, 38), dof: 12, focus: () => [LIE_X + 0.1, 0.35, 0.1] },
   { t: 114.95, mood: "dread", cam: (u) => orbit([LIE_X - 0.7, 0.4, 0.2], 1.8, -10, 16, 38), dof: 12, focus: () => [LIE_X - 0.7, 0.4, 0.2] },
-  { t: 116.1, mood: "dread", cam: (u) => ({ pos: add(BRANCH, [0.35, 1.5, 0.9]), look: [LIE_X, 0.3, 0.2], fov: 46, roll: -0.04 }), dof: 4, focus: () => [LIE_X, 0.3, 0.2], kind: "fromTree" },
+  { t: 116.1, mood: "dread", cam: (u) => ({ pos: add(BRANCH, [0.15, 0.4, -0.05]), look: [LIE_X + 0.3 * u, 0.3, 0.3], fov: 46, roll: -0.04 }), dof: 4, focus: () => [LIE_X, 0.3, 0.2], kind: "fromTree" },
   { t: 120.85, mood: "dread", cam: (u) => orbit([LIE_X - 0.85, 0.42, 0.25], 2.6 - 1.3 * smooth(u), -12, 9, 38), dof: 14, focus: () => [LIE_X - 0.85, 0.42, 0.25], kind: "whisper" },
-  { t: 129.5, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 1.3 - 0.15 * u, 0, 60, 36), dof: 13, focus: () => shyamHeadLying() },
+  { t: 129.5, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 2.2 - 0.2 * u, 0, 60, 36), dof: 13, focus: () => shyamHeadLying() },
   { t: 133.65, mood: "dread", cam: (u, t) => orbit([39.5, 1.0, 1.5], 9.0, -30, 8, 42), dof: 4, focus: (t) => add(B(t), [0, 0.9, 0]) },
   // ---- Ram comes down ----
-  { t: 138.15, mood: "warm", cam: (u) => orbit(add(BRANCH, [0, 0.9, 0]), 2.6, 15, -10, 38), dof: 10, focus: () => add(BRANCH, [0, 0.9, 0]) },
+  { t: 138.15, mood: "warm", cam: (u) => orbit(add(BRANCH, [0, 0.45, 0]), 3.2, 15, -6, 38), dof: 10, focus: () => add(BRANCH, [0, 0.45, 0]) },
   { t: 142.95, mood: "warm", cam: (u, t) => orbit([39.0, 1.5, 4.0], 5.0, -18, 4, 42), dof: 6, focus: (t) => head(R(t), 1.2) },
   { t: 146.85, mood: "warm", cam: (u, t) => orbit(head(R(t), 1.5), 2.1 - 0.2 * u, 30, 0, 36), dof: 12, focus: (t) => head(R(t)) },
   { t: 153.2, mood: "warm", cam: (u, t) => orbit(head(S(t), 1.2), 3.4, -20, 0, 40), dof: 9, focus: (t) => head(S(t), 1.45) },
