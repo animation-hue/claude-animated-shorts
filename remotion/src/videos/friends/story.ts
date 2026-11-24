@@ -99,7 +99,7 @@ const PLANS: Plan[] = [
   { t: 32.4, mood: "jungle", cam: (u, t) => orbit(head(R(t), 1.45), 2.3 - 0.3 * u, 35, -16, 40, 0.05), dof: 10, focus: (t) => head(R(t)) },
   { t: 37.95, mood: "jungle", cam: (u, t) => orbit(two(t, 3.0), 17 - 2 * u, -100, 6, 48), dof: 2, kind: "wide" },
   // ---- three false alarms ----
-  { t: 44.85, mood: "jungle", cam: (u) => orbit(add(BUSH, [0, 0.8, 0]), 3.2 - 0.6 * u, -20, 6, 38), dof: 9, focus: () => add(BUSH, [0, 0.8, 0]) },
+  { t: 44.85, mood: "jungle", cam: (u) => orbit(add(BUSH, [0, 0.8, 0]), 4.8 - 0.8 * u, -20, 6, 40), dof: 9, focus: () => add(BUSH, [0, 0.8, 0]) },
   { t: 46.9, mood: "jungle", cam: (u, t) => orbit(head(R(t), 1.1), 3.2, -15, 0, 40, 0.06), dof: 8, focus: (t) => head(R(t)) },
   { t: 48.2, mood: "jungle", cam: (u) => orbit(add(BUSH, [-1.0, 0.3, -1.8]), 2.0 - 0.2 * u, -30, 4, 36), dof: 12, focus: () => add(BUSH, [-1.0, 0.3, -1.8]) },
   { t: 49.6, mood: "jungle", cam: (u, t) => orbit(two(t, 1.3), 5.5 - 0.6 * u, -60, 3, 40), dof: 6 },
@@ -123,14 +123,14 @@ const PLANS: Plan[] = [
   { t: 98.2, mood: "memory", cam: (u) => orbit(add(HUT, [0, 1.0, -2.2]), 3.2 - 0.4 * u, 12, 4, 40), dof: 9, focus: () => add(HUT, [0, 1.0, -2.2]), kind: "memory" },
   // ---- playing dead ----
   { t: 104.35, mood: "dread", cam: (u, t) => orbit([LIE_X, 0.5, 0], 6.0 - 0.5 * u, -20, 14, 42), dof: 6 },
-  { t: 107.15, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 2.5 - 0.3 * u, -5, 58, 38), dof: 12, focus: () => shyamHeadLying() },
+  { t: 107.15, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 3.3 - 0.3 * u, -5, 58, 40), dof: 12, focus: () => shyamHeadLying() },
   { t: 110.1, mood: "dread", cam: (u, t) => ({ pos: [LIE_X - 2.6, 0.55, -1.3], look: add(B(t), [0, 0.75, 0]), fov: 44, roll: 0.03 }), dof: 6, focus: (t) => add(B(t), [-1.0, 0.8, 0]) },
   { t: 112.0, mood: "dread", cam: (u) => orbit([LIE_X + 0.85, 0.35, 0.2], 1.7, -20, 12, 38), dof: 12, focus: () => [LIE_X + 0.85, 0.35, 0.2] },
   { t: 113.45, mood: "dread", cam: (u) => orbit([LIE_X + 0.1, 0.35, 0.1], 1.7, -15, 14, 38), dof: 12, focus: () => [LIE_X + 0.1, 0.35, 0.1] },
   { t: 114.95, mood: "dread", cam: (u) => orbit([LIE_X - 0.7, 0.4, 0.2], 1.8, -10, 16, 38), dof: 12, focus: () => [LIE_X - 0.7, 0.4, 0.2] },
   { t: 116.1, mood: "dread", cam: (u) => ({ pos: add(BRANCH, [0.15, 0.4, -0.05]), look: [LIE_X + 0.3 * u, 0.3, 0.3], fov: 46, roll: -0.04 }), dof: 4, focus: () => [LIE_X, 0.3, 0.2], kind: "fromTree" },
   { t: 120.85, mood: "dread", cam: (u) => orbit([LIE_X - 0.85, 0.42, 0.25], 2.6 - 1.3 * smooth(u), -12, 9, 38), dof: 14, focus: () => [LIE_X - 0.85, 0.42, 0.25], kind: "whisper" },
-  { t: 129.5, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 2.2 - 0.2 * u, 0, 60, 36), dof: 13, focus: () => shyamHeadLying() },
+  { t: 129.5, mood: "dread", cam: (u) => orbit(shyamHeadLying(), 3.0 - 0.2 * u, 0, 60, 38), dof: 13, focus: () => shyamHeadLying() },
   { t: 133.65, mood: "dread", cam: (u, t) => orbit([39.5, 1.0, 1.5], 9.0, -30, 8, 42), dof: 4, focus: (t) => add(B(t), [0, 0.9, 0]) },
   // ---- Ram comes down ----
   { t: 138.15, mood: "warm", cam: (u) => orbit(add(BRANCH, [0, 0.45, 0]), 3.2, 15, -6, 38), dof: 10, focus: () => add(BRANCH, [0, 0.45, 0]) },
@@ -142,10 +142,10 @@ const PLANS: Plan[] = [
   { t: 167.95, mood: "golden", cam: (u, t) => orbit(two(t, 1.15), 1.5 - 0.1 * u, -5, 6, 38), dof: 13, kind: "hands3" },
   { t: 172.0, mood: "golden", cam: (u, t) => orbit(head(S(t), 1.45), 2.0, -30, 0, 36), dof: 12, focus: (t) => head(S(t), 1.45) },
   { t: 174.8, mood: "golden", cam: (u, t) => ({ pos: add(R(t), [1.1, 1.6, 1.5]), look: add(S(t), [0, 1.1, 0]), fov: 42, roll: 0 }), dof: 6, focus: (t) => head(S(t), 1.2) },
-  { t: 179.4, mood: "golden", cam: (u, t) => orbit(add(R(t), [-3.5, 1.4, 0]), 11 + 6 * u, -25, 10 + 6 * u, 46), dof: 2, kind: "wide" },
+  { t: 179.4, mood: "golden", cam: (u, t) => orbit(mid(add(R(t), [0, 1.1, 0]), add(S(t), [0, 1.1, 0]), 0.35), 7 + 4 * u, 78, 9 + 4 * u, 46), dof: 2, kind: "wide" },
 ];
 export const SHOTS: ShotDef[] = PLANS.map((p, i) => ({
-  id: i + 1, a: F(p.t), b: i + 1 < PLANS.length ? F(PLANS[i + 1].t) : TOTAL, light: p.mood === "golden" ? "golden" : "day", mood: p.mood,
+  id: i + 1, a: F(p.t), b: i + 1 < PLANS.length ? F(PLANS[i + 1].t) : TOTAL, light: "day", mood: p.mood,
   crowd: p.kind ?? "", tau: (t: number) => t, sunAz: p.sunAz, sunEl: p.sunEl, memory: p.mood === "memory",
 }));
 export const XFADE: Record<number, number> = {};

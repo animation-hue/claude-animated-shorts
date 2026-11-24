@@ -75,6 +75,12 @@ export const moodLight = (L: LightPreset, m: Mood): LightPreset => {
     // the bear: the sun goes behind cloud, cooler and dimmer; the low point of the light arc
     case "dread": return { ...L, el: 40, az: 100, lit: mulC(L.lit, [0.72, 0.76, 0.84]), shade: [0.18, 0.22, 0.28], lift: [0.03, 0.05, 0.08],
       sunI: L.sunI * 0.6, fog: "#8fa39a", fogNear: 10, fogFar: 110, charTint: [0.88, 0.92, 1.0] };
+    // after the bear: the sun comes back, warm late afternoon, green-warm shade
+    case "warm": return { ...L, el: 26, az: 70, lit: [1.62, 1.32, 0.98], shade: [0.32, 0.31, 0.27], lift: [0.05, 0.05, 0.04],
+      fog: "#cfc79a", fogNear: 14, fogFar: 140, charTint: [1.0, 0.95, 0.86] };
+    // the ending: golden evening light through the trees, amber shade (never purple)
+    case "golden": return { ...L, el: 12, az: 55, lit: [1.78, 1.12, 0.58], shade: [0.36, 0.27, 0.22], lift: [0.07, 0.045, 0.03], sunCol: "#ffb36b",
+      fog: "#e8b88a", fogNear: 14, fogFar: 150, charTint: [1.0, 0.86, 0.7], sky: "#f2c9a0" };
     // Grandma's memory: soft, warm, low contrast
     case "memory": return { ...L, el: 30, az: 120, lit: [1.5, 1.22, 0.9], shade: [0.42, 0.34, 0.34], lift: [0.08, 0.06, 0.05],
       fog: "#f0d8b0", fogNear: 20, fogFar: 160, charTint: [1.0, 0.9, 0.8] };
@@ -94,6 +100,8 @@ export const moodLook = (K: WorldLook, m: Mood): WorldLook => {
   switch (m) {
     case "jungle": return { ...K, sat: 1.1, sky: { c: ["#cfe6c8", "#a9d2e8", "#7fb6e6", "#5c9ce0", "#3f82d4"], e: [0, 3, 8, 16, 40] } };
     case "dread": return { ...K, sat: 0.8, sky: { c: ["#b9c4c2", "#a5b3bb", "#8f9fae", "#7e8ea2", "#6c7c94"], e: [0, 3, 8, 16, 40] } };
+    case "warm": return { ...K, sat: 1.06, sky: { c: ["#f0e2b8", "#cfdbe0", "#9fc0e0", "#7ba8dc", "#5a8ed2"], e: [0, 3, 8, 16, 40] } };
+    case "golden": return { ...K, sat: 1.1, sky: { c: ["#ffd79a", "#ffc583", "#f6ad7e", "#d99b8e", "#9c88a0"], e: [0, 4, 10, 20, 40] } };
     case "memory": return { ...K, sat: 0.72, sky: { c: ["#f6e2bc", "#f0d6ae", "#e6c8a4", "#d9bca0", "#c9ae98"], e: [0, 3, 8, 16, 40] } };
     case "morning": return { ...K, sat: 1.06, sky: { c: ["#d6e6f2", "#b8d6ef", "#8ab9e8", "#68a2e0", "#4a86d4"], e: [0, 3, 8, 16, 40] },
       water: { ...K.water, near: "#2fb0be", mid: "#2490c0", far: "#7fb4d8", crest: "#bff0f4" } };

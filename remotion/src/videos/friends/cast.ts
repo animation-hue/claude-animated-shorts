@@ -299,19 +299,26 @@ const bear = (out: Stage, cam: CamInfo, t: number, pose: BearPose = {}) => {
 
 /** the secret handshake as an insert card: two hands meet (k = 0 slap, 1 slap, 2 bump, 3 thumbs); solo = only Ram's */
 const handsCard = (beat: number, sub: number, solo: boolean) => (p: Pen) => {
-  const skinR = RAM.skin!, skinS = SHYAM.skin!, sleeveR = RAM.jacket, sleeveS = SHYAM.jacket;
-  const gap = beat < 2 ? 60 * (1 - Math.min(1, sub * 2)) + 4 : 20 * (1 - Math.min(1, sub * 2)) + 2;
-  const arm = (side: number, col: string, skin: string, kind: string) => {
-    const x0 = side < 0 ? 0 : 800, xh = 400 - side * (gap + 70);
-    p.line([[x0, 330 + side * 30], [xh - side * 60, 300]], col, 120);
-    if (kind === "fist") p.ell(xh, 290, 78, 66, skin, 9);
-    else if (kind === "thumb") { p.ell(xh, 300, 70, 60, skin, 9); p.poly([[xh - 18, 250], [xh - 18, 150], [xh + 18, 150], [xh + 18, 250]], skin, 9); }
-    else { p.poly([[xh - side * 60, 230], [xh + side * 40, 210], [xh + side * 60, 330], [xh - side * 60, 360]], skin, 9); }
-  };
+  const gap = beat < 2 ? 70 * (1 - Math.min(1, sub * 2)) + 4 : 30 * (1 - Math.min(1, sub * 2)) + 2;
   const kind = beat < 2 ? "flat" : beat === 2 ? "fist" : "thumb";
-  arm(-1, sleeveR, skinR, kind);
-  if (!solo) arm(1, sleeveS, skinS, kind);
-  if (!solo && sub > 0.45 && sub < 0.8) for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; p.stroke([[400 + 95 * Math.cos(a), 290 + 95 * Math.sin(a)], [400 + 140 * Math.cos(a), 290 + 140 * Math.sin(a)]], 10); }
+  const arm = (s: number, o: { jacket: string; skin?: string }) => {
+    // s = -1: Ram's arm from the left; +1: Shyam's from the right. Hands meet in the middle (x 400).
+    const skin = o.skin ?? "#e4ad86", hx = 400 + s * (gap + (kind === "flat" ? 60 : 74)), y = 250;
+    p.line([[s < 0 ? -60 : 860, 340], [hx + s * 70, y + 10]], o.jacket, 150);
+    p.ell(hx + s * 88, y + 10, 24, 80, o.jacket, 9);                                     // cuff
+    if (kind === "flat") {                                                               // open palm, fingers up
+      for (let k = 0; k < 4; k++) p.ell(hx - 42 + 28 * k, y - 62 - (k === 1 || k === 2 ? 8 : 0), 15, 38, skin, 7);
+      p.ell(hx, y + 15, 66, 78, skin, 9);
+      p.ell(hx - s * 56, y + 6, 17, 34, skin, 7, 0, 360, -s * 35);
+    } else {                                                                             // fist (+ thumb up)
+      if (kind === "thumb") p.poly([[hx - 20, y - 30], [hx - 20, y - 140], [hx + 20, y - 140], [hx + 20, y - 30]], skin, 8);
+      p.ell(hx, y + 15, 80, 70, skin, 9);
+      for (let k = 0; k < 3; k++) p.arc(hx - s * 42, y - 22 + k * 32, 16, 11, s < 0 ? 270 : 90, s < 0 ? 450 : 270, 6);
+    }
+  };
+  arm(-1, RAM);
+  if (!solo) arm(1, SHYAM);
+  if (!solo && sub > 0.45 && sub < 0.85) for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; p.stroke([[400 + 120 * Math.cos(a), 250 + 120 * Math.sin(a)], [400 + 175 * Math.cos(a), 250 + 175 * Math.sin(a)]], 11); }
 };
 const HANDS: Record<string, number[]> = { hands1: [5.48, 6.3, 7.15, 8.05], hands2: [26.3, 27.27, 27.95, 28.63], hands3: [169.89, 171.14] };
 
@@ -333,9 +340,9 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
   if (hb) {
     let beat = -1; for (let i = 0; i < hb.length; i++) if (t >= hb[i] - 0.12) beat = i;
     const sub = beat >= 0 ? Math.min(1, (t - hb[beat] + 0.12) / 0.35) : 0;
-    const c = cam.pos, fw = cam.fwd ?? tv.set(0, 0, 1), at: V3 = [c.x + fw.x * 1.0, c.y + fw.y * 1.0 - 0.05, c.z + fw.z * 1.0];
+    const c = cam.pos, fw = cam.fwd ?? tv.set(0, 0, 1), at: V3 = [c.x + fw.x * 1.0, c.y + fw.y * 1.0, c.z + fw.z * 1.0];
     const solo = s.crowd === "hands3";
-    out.fx.push({ key: `hands|${beat}|${Math.round(sub * 12)}|${solo}`, cw: 800, ch: 480, draw: handsCard(Math.max(0, beat), sub, solo), x: at[0], y: at[1], z: at[2], w: 0.36, h: 0.216 });
+    out.fx.push({ key: `hands|${beat}|${Math.round(sub * 12)}|${solo}`, cw: 800, ch: 480, draw: handsCard(Math.max(0, beat), sub, solo), x: at[0], y: at[1], z: at[2], w: 0.66, h: 0.396 });
     return out;
   }
   // ---- Grandma's memory ----
