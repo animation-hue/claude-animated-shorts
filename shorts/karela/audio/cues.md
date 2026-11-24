@@ -10,20 +10,20 @@ Voice = `voice/voice.wav`, gain only (no EQ, no compression, no pitch).
 | `stem_voice.wav` / `stem_music.wav` / `stem_sfx.wav` | stems at mix gain (they sum to the mix before the master limiter) |
 
 ## Master loudness (own BS.1770-4 meter)
-- Integrated **-15.0 LUFS**, true peak **-1.2 dBTP**, LRA 6.3 LU, max momentary -8.6 LUFS, max short-term -11.6 LUFS
-- Stems: voice -13.7 LUFS, music -23.9 LUFS, sfx -39.7 LUFS (voice gain +6.55 dB, same gain on every stem)
-- Master limiter (4x oversampled look-ahead, ceiling -1.2 dBTP): max gain reduction 5.62 dB, active (>0.1 dB) on 13.71 % of samples, >0.5 dB on 6.22 %
+- Integrated **-15.0 LUFS**, true peak **-1.2 dBTP**, LRA 6.8 LU, max momentary -8.8 LUFS, max short-term -11.6 LUFS
+- Stems: voice -14.4 LUFS, music -24.4 LUFS, sfx -39.7 LUFS (voice gain +5.30 dB, same gain on every stem)
+- Master limiter (4x oversampled look-ahead, ceiling -1.2 dBTP): max gain reduction 5.00 dB, active (>0.1 dB) on 13.40 % of samples, >0.5 dB on 6.20 %
 
 ffmpeg ebur128 cross-check:
 ```
 Summary:
   Integrated loudness:
     I:         -15.0 LUFS
-    Threshold: -25.3 LUFS
+    Threshold: -25.4 LUFS
   Loudness range:
-    LRA:         6.3 LU
-    Threshold: -35.3 LUFS
-    LRA low:   -19.2 LUFS
+    LRA:         6.8 LU
+    Threshold: -35.4 LUFS
+    LRA low:   -19.7 LUFS
     LRA high:  -12.9 LUFS
   True peak:
     Peak:       -1.2 dBFS
@@ -34,19 +34,19 @@ bed = music + sfx. margin = voice - bed (integrated over the section). speech me
 
 | section (shots) | time s | voice | music | sfx | bed | margin LU | speech median LU | speech p10 LU |
 |---|---|---|---|---|---|---|---|---|
-| intro (01-02) | 0.00-26.00 | -13.4 | -22.9 | -39.9 | -22.9 | 9.4 | 10.1 | 6.2 |
-| harvest (03) | 26.00-52.60 | -15.5 | -25.5 | -42.8 | -25.4 | 9.9 | 9.6 | 4.9 |
-| night 1 (04-05) | 52.60-72.50 | -12.4 | -23.2 | -40.4 | -23.1 | 10.7 | 11.2 | 6.1 |
-| loss 1 (06-07) | 72.50-99.00 | -12.6 | -24.1 | -42.4 | -24.0 | 11.4 | 10.2 | 4.8 |
-| again (08-10) | 99.00-131.60 | -13.6 | -23.5 | -40.3 | -23.4 | 9.8 | 10.0 | 5.3 |
-| loss 2 (11) | 131.60-155.90 | -14.2 | -26.2 | -42.5 | -26.1 | 11.9 | 13.4 | 5.5 |
-| idea (12-14) | 155.90-202.00 | -14.3 | -25.3 | -43.8 | -25.3 | 10.9 | 10.0 | 4.4 |
-| plan (15-17) | 202.00-236.80 | -13.3 | -22.8 | -42.6 | -22.7 | 9.5 | 9.7 | 4.8 |
-| boars (18-21) | 236.80-283.40 | -13.8 | -23.6 | -34.6 | -23.5 | 9.6 | 10.2 | 5.7 |
-| ending (22-24) | 283.40-340.38 | -13.9 | -23.7 | -41.3 | -23.6 | 9.8 | 9.8 | 4.9 |
+| intro (01-02) | 0.00-26.00 | -15.1 | -24.6 | -39.3 | -24.4 | 9.4 | 9.3 | 3.5 |
+| harvest (03) | 26.00-52.60 | -13.7 | -23.7 | -41.5 | -23.7 | 9.9 | 9.5 | 5.5 |
+| night 1 (04-05) | 52.60-72.50 | -17.2 | -27.9 | -42.5 | -27.7 | 10.6 | 10.9 | 6.7 |
+| loss 1 (06-07) | 72.50-99.00 | -15.8 | -27.3 | -42.2 | -27.2 | 11.4 | 10.6 | 5.3 |
+| again (08-10) | 99.00-131.60 | -14.5 | -24.5 | -39.9 | -24.3 | 9.9 | 9.7 | 5.0 |
+| loss 2 (11) | 131.60-155.90 | -17.5 | -29.5 | -42.2 | -29.3 | 11.8 | 11.9 | 5.8 |
+| idea (12-14) | 155.90-202.00 | -14.3 | -25.3 | -43.4 | -25.2 | 10.9 | 10.9 | 4.0 |
+| plan (15-17) | 202.00-236.80 | -14.1 | -23.6 | -42.4 | -23.5 | 9.4 | 9.3 | 4.1 |
+| boars (18-21) | 236.80-283.40 | -13.2 | -22.9 | -35.1 | -22.6 | 9.4 | 9.6 | 6.5 |
+| ending (22-24) | 283.40-340.38 | -13.7 | -23.5 | -40.0 | -23.4 | 9.7 | 10.1 | 5.2 |
 
 ## Music map (original love theme, G major pentatonic, 92 bpm)
-Music target per section, LU under the voice (after a -3 dB speech duck keyed from words.json): intro -9.5, harvest -10.0, lullaby -11.0, prowl1 -10.5, loss1 -11.5, timelapse -9.5, hope -10.5, prowl2 -10.5, loss2 -12.0, idea -11.0, plant -9.5, night3 -10.5, comic -9.0, calm -11.0, finale -9.5. Applied section gains (dB): intro -10.0, harvest -13.3, lullaby -8.5, prowl1 -3.8, loss1 -6.6, timelapse -10.3, hope -10.8, prowl2 -7.6, loss2 -12.7, idea -7.9, plant -9.9, night3 -7.7, comic -7.0, calm -8.9, finale -11.1.
+Music target per section, LU under the voice (after a -3 dB speech duck keyed from words.json): intro -9.5, harvest -10.0, lullaby -11.0, prowl1 -10.5, loss1 -11.5, timelapse -9.5, hope -10.5, prowl2 -10.5, loss2 -12.0, idea -11.0, plant -9.5, night3 -10.5, comic -9.0, calm -11.0, finale -9.5. Applied section gains (dB): intro -10.2, harvest -10.2, lullaby -11.4, prowl1 -7.4, loss1 -8.5, timelapse -9.7, hope -9.0, prowl2 -10.4, loss2 -14.5, idea -6.6, plant -9.1, night3 -7.8, comic -4.0, calm -5.4, finale -9.6.
 
 Rides (music only, dB): 315.70-336.20 s -1.0 - so quiet sentence-final words stay on top and the band blooms in the gaps after them. 
 
@@ -68,71 +68,63 @@ Rides (music only, dB): 315.70-336.20 s -1.0 - so quiet sentence-final words sta
 | 335.70 | 8057 | a soft D major button on the last word |
 
 ## SFX events
-Level convention: every EVENT has a naive level (LU vs the voice stem, as the event's max momentary loudness); applied = naive - 6 dB (standard mix rule) + distance/intensity offsets. BEDS are integrated loudness, not reduced. 'mix LUFS' = the event's max momentary loudness in the final mix (voice stem = -13.7 LUFS integrated). Column sounds also get the camera-distance low-pass and more valley reverb.
+Level convention: every EVENT has a naive level (LU vs the voice stem, as the event's max momentary loudness); applied = naive - 6 dB (standard mix rule) + distance/intensity offsets. BEDS are integrated loudness, not reduced. 'mix LUFS' = the event's max momentary loudness in the final mix (voice stem = -14.4 LUFS integrated). Column sounds also get the camera-distance low-pass and more valley reverb.
 
 | # | time s | frame | cue | what | naive LU | applied LU | mix LUFS | pan |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 0.000 | 0.0 | amb (bed, integrated) | village morning: birds, breeze through the corn | -29 | -29.0 | -42.7 | +0.00 |
-| 2 | 0.491 | 11.8 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 3 | 2.454 | 58.9 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 4 | 4.418 | 106.0 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 5 | 6.381 | 153.2 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 6 | 8.345 | 200.3 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 7 | 10.308 | 247.4 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 8 | 12.272 | 294.5 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 9 | 14.235 | 341.6 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 10 | 16.199 | 388.8 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 11 | 18.162 | 435.9 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 12 | 20.126 | 483.0 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 13 | 20.800 | 499.2 | pour1 | Vidya waters the tulsi from her lota | -22 | -28.0 | -41.7 | +0.00 |
-| 14 | 22.089 | 530.1 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 15 | 23.900 | 573.6 | steps | Ramu walks to the path | -20 | -26.0 | -39.7 | +0.00 |
-| 16 | 52.600 | 1262.4 | amb (bed, integrated) | night: crickets | -31 | -31.0 | -44.7 | +0.00 |
-| 17 | 66.100 | 1586.4 | corn_rustle | something moves in the corn | -16 | -22.0 | -35.7 | +0.40 |
-| 18 | 72.500 | 1740.0 | amb (bed, integrated) | day: birds, breeze | -30 | -30.0 | -43.7 | +0.00 |
-| 19 | 72.500 | 1740.0 | steps | they hurry to the field | -20 | -26.0 | -39.7 | +0.00 |
-| 20 | 72.600 | 1742.4 | sting1 | the ruined field: broken stalks creak in the wind | -22 | -28.0 | -41.7 | +0.00 |
-| 21 | 100.254 | 2406.1 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 22 | 102.102 | 2450.4 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 23 | 103.950 | 2494.8 | hoe | the hoe bites into the soil | -18 | -24.0 | -37.7 | +0.00 |
-| 24 | 104.500 | 2508.0 | seeds | seeds scattered (a dry patter) | -20 | -26.0 | -39.7 | +0.00 |
-| 25 | 107.500 | 2580.0 | pour2 | Ramu waters the young plants | -20 | -26.0 | -39.7 | +0.00 |
-| 26 | 110.000 | 2640.0 | grow | time-lapse growth: a soft rising whoosh | -20 | -26.0 | -39.7 | +0.00 |
-| 27 | 126.400 | 3033.6 | amb (bed, integrated) | night: crickets | -31 | -31.0 | -44.7 | +0.00 |
-| 28 | 128.800 | 3091.2 | corn_rustle | something moves in the corn | -16 | -22.0 | -35.7 | +0.40 |
-| 29 | 131.600 | 3158.4 | amb (bed, integrated) | day: birds, breeze | -30 | -30.0 | -43.7 | +0.00 |
-| 30 | 131.600 | 3158.4 | steps | back to the field | -20 | -26.0 | -39.7 | +0.00 |
-| 31 | 134.400 | 3225.6 | sting2 | broken stalks again | -22 | -28.0 | -41.7 | +0.00 |
-| 32 | 138.400 | 3321.6 | sit | Ramu sinks down onto the soil | -20 | -26.0 | -39.7 | +0.00 |
-| 33 | 202.000 | 4848.0 | seeds2 | planting vines and seeds | -22 | -28.0 | -41.7 | +0.00 |
-| 34 | 214.200 | 5140.8 | grow2 | the vines climb, the corn rises | -21 | -27.0 | -40.7 | +0.00 |
-| 35 | 236.800 | 5683.2 | amb (bed, integrated) | night: crickets, wind in the corn | -30 | -30.0 | -43.7 | +0.00 |
-| 36 | 247.200 | 5932.8 | bush | the bushes shake | -13 | -19.0 | -32.7 | +0.40 |
-| 37 | 249.200 | 5980.8 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | +0.00 |
-| 38 | 249.200 | 5980.8 | trot | hooves trotting | -18 | -24.0 | -37.7 | +0.00 |
-| 39 | 249.800 | 5995.2 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | +0.25 |
-| 40 | 250.400 | 6009.6 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | +0.27 |
-| 41 | 251.000 | 6024.0 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | +0.04 |
-| 42 | 251.600 | 6038.4 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | -0.23 |
-| 43 | 252.200 | 6052.8 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | -0.29 |
-| 44 | 252.800 | 6067.2 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | -0.08 |
-| 45 | 253.400 | 6081.6 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | +0.20 |
-| 46 | 254.000 | 6096.0 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | +0.30 |
-| 47 | 254.600 | 6110.4 | grunt | grunts as they trot out ('घुर्र! घुर्र!') | -14 | -20.0 | -33.7 | +0.12 |
-| 48 | 255.400 | 6129.6 | sniff | sniffing at the vines | -14 | -20.0 | -33.7 | +0.00 |
-| 49 | 257.400 | 6177.6 | crunch | CRUNCH: the first boar bites a karela | -9 | -15.0 | -28.7 | +0.00 |
-| 50 | 260.400 | 6249.6 | bitter | the bitter taste: a slide-whistle fall + a disgusted 'उँह!' | -7 | -13.0 | -26.7 | +0.00 |
-| 51 | 261.450 | 6274.8 | crunch2 | another boar bites | -13 | -19.0 | -32.7 | -0.30 |
-| 52 | 262.000 | 6288.0 | crunch2 | another boar bites | -13 | -19.0 | -32.7 | -0.15 |
-| 53 | 262.550 | 6301.2 | crunch2 | another boar bites | -13 | -19.0 | -32.7 | +0.00 |
-| 54 | 262.850 | 6308.4 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -30.7 | -0.30 |
-| 55 | 263.100 | 6314.4 | crunch2 | another boar bites | -13 | -19.0 | -32.7 | +0.15 |
-| 56 | 263.400 | 6321.6 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -30.7 | -0.15 |
-| 57 | 263.650 | 6327.6 | crunch2 | another boar bites | -13 | -19.0 | -32.7 | +0.30 |
-| 58 | 263.950 | 6334.8 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -30.7 | +0.00 |
-| 59 | 264.500 | 6348.0 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -30.7 | +0.15 |
-| 60 | 265.050 | 6361.2 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -30.7 | +0.30 |
-| 61 | 267.800 | 6427.2 | stampede | they flee: hooves, squeals, a crash through the bushes | -10 | -16.0 | -29.7 | +0.40 |
-| 62 | 283.400 | 6801.6 | amb (bed, integrated) | sunrise: a chorus of birds | -28 | -28.0 | -41.7 | +0.00 |
-| 63 | 283.400 | 6801.6 | steps | a happy walk to the field | -20 | -26.0 | -39.7 | +0.00 |
-| 64 | 283.800 | 6811.2 | rooster | a rooster crows at sunrise | -16 | -22.0 | -35.7 | -0.40 |
+| 1 | 0.000 | 0.0 | amb (bed, integrated) | village morning: songbirds, a cuckoo, breeze (ElevenLabs) | -27 | -27.0 | -41.4 | +0.00 |
+| 2 | 0.491 | 11.8 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 3 | 2.454 | 58.9 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 4 | 4.418 | 106.0 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 5 | 6.381 | 153.2 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 6 | 8.345 | 200.3 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 7 | 10.308 | 247.4 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 8 | 12.272 | 294.5 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 9 | 14.235 | 341.6 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 10 | 16.199 | 388.8 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 11 | 18.162 | 435.9 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 12 | 20.126 | 483.0 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 13 | 20.800 | 499.2 | pour1 | Vidya waters the tulsi from her lota | -22 | -28.0 | -42.4 | +0.00 |
+| 14 | 22.089 | 530.1 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 15 | 23.900 | 573.6 | steps | Ramu walks to the path | -20 | -26.0 | -40.4 | +0.00 |
+| 16 | 52.600 | 1262.4 | amb (bed, integrated) | night: crickets, wind in the corn, a far owl (ElevenLabs) | -29 | -29.0 | -43.4 | +0.00 |
+| 17 | 63.600 | 1526.4 | destroy1 | in the dark: corn stalks snapping, leaves tearing, trampling (ElevenLabs) | -13 | -19.0 | -33.4 | +0.35 |
+| 18 | 72.500 | 1740.0 | amb (bed, integrated) | day: birds (ElevenLabs) | -29 | -29.0 | -43.4 | +0.00 |
+| 19 | 72.500 | 1740.0 | steps | they hurry to the field | -20 | -26.0 | -40.4 | +0.00 |
+| 20 | 72.600 | 1742.4 | sting1 | the ruined field: broken stalks creak in the wind | -22 | -28.0 | -42.4 | +0.00 |
+| 21 | 100.254 | 2406.1 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 22 | 102.102 | 2450.4 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 23 | 103.950 | 2494.8 | hoe | the hoe bites into the soil | -18 | -24.0 | -38.4 | +0.00 |
+| 24 | 104.500 | 2508.0 | seeds | seeds scattered (a dry patter) | -20 | -26.0 | -40.4 | +0.00 |
+| 25 | 107.500 | 2580.0 | pour2 | Ramu waters the young plants | -20 | -26.0 | -40.4 | +0.00 |
+| 26 | 110.000 | 2640.0 | grow | time-lapse growth: a soft rising whoosh | -20 | -26.0 | -40.4 | +0.00 |
+| 27 | 126.400 | 3033.6 | amb (bed, integrated) | night (ElevenLabs) | -29 | -29.0 | -43.4 | +0.00 |
+| 28 | 128.300 | 3079.2 | destroy2 | again: the field being torn apart (ElevenLabs) | -13 | -19.0 | -33.4 | +0.35 |
+| 29 | 131.600 | 3158.4 | amb (bed, integrated) | day: birds (ElevenLabs) | -29 | -29.0 | -43.4 | +0.00 |
+| 30 | 131.600 | 3158.4 | steps | back to the field | -20 | -26.0 | -40.4 | +0.00 |
+| 31 | 134.400 | 3225.6 | sting2 | broken stalks again | -22 | -28.0 | -42.4 | +0.00 |
+| 32 | 138.400 | 3321.6 | sit | Ramu sinks down onto the soil | -20 | -26.0 | -40.4 | +0.00 |
+| 33 | 202.000 | 4848.0 | seeds2 | planting vines and seeds | -22 | -28.0 | -42.4 | +0.00 |
+| 34 | 214.200 | 5140.8 | grow2 | the vines climb, the corn rises | -21 | -27.0 | -41.4 | +0.00 |
+| 35 | 236.800 | 5683.2 | amb (bed, integrated) | night: crickets, wind, owl (ElevenLabs) | -28 | -28.0 | -42.4 | +0.00 |
+| 36 | 247.200 | 5932.8 | bush | the bushes shake | -13 | -19.0 | -33.4 | +0.40 |
+| 37 | 249.200 | 5980.8 | boars | the herd trots out: deep snorting grunts, sniffing, rustling (ElevenLabs) | -10 | -16.0 | -30.4 | +0.30 |
+| 38 | 249.200 | 5980.8 | trot | hooves trotting | -18 | -24.0 | -38.4 | +0.00 |
+| 39 | 255.000 | 6120.0 | boars2 | snuffling at the vines (ElevenLabs) | -12 | -18.0 | -32.4 | +0.20 |
+| 40 | 255.400 | 6129.6 | sniff | sniffing at the vines | -14 | -20.0 | -34.4 | +0.00 |
+| 41 | 257.400 | 6177.6 | crunch | CRUNCH: the first boar bites a karela - chomping, then a disgusted snort and spit (ElevenLabs) | -8 | -14.0 | -28.4 | +0.00 |
+| 42 | 260.400 | 6249.6 | bitter | the bitter taste: a slide-whistle fall + a disgusted 'उँह!' | -7 | -13.0 | -27.4 | +0.00 |
+| 43 | 261.450 | 6274.8 | crunch2 | another boar bites | -13 | -19.0 | -33.4 | -0.30 |
+| 44 | 262.000 | 6288.0 | crunch2 | another boar bites | -13 | -19.0 | -33.4 | -0.15 |
+| 45 | 262.550 | 6301.2 | crunch2 | another boar bites | -13 | -19.0 | -33.4 | +0.00 |
+| 46 | 262.850 | 6308.4 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -31.4 | -0.30 |
+| 47 | 263.100 | 6314.4 | crunch2 | another boar bites | -13 | -19.0 | -33.4 | +0.15 |
+| 48 | 263.400 | 6321.6 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -31.4 | -0.15 |
+| 49 | 263.650 | 6327.6 | crunch2 | another boar bites | -13 | -19.0 | -33.4 | +0.30 |
+| 50 | 263.950 | 6334.8 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -31.4 | +0.00 |
+| 51 | 264.500 | 6348.0 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -31.4 | +0.15 |
+| 52 | 265.050 | 6361.2 | yuck | and spits it out: a squeal + 'उँह! उँह!' | -11 | -17.0 | -31.4 | +0.30 |
+| 53 | 267.800 | 6427.2 | stampede | they flee: panicked squeals, hooves, a crash through the bushes, fading away (ElevenLabs) | -8 | -14.0 | -28.4 | +0.40 |
+| 54 | 283.400 | 6801.6 | amb (bed, integrated) | sunrise: a chorus of birds (ElevenLabs) | -26 | -26.0 | -40.4 | +0.00 |
+| 55 | 283.400 | 6801.6 | steps | a happy walk to the field | -20 | -26.0 | -40.4 | +0.00 |
+| 56 | 283.800 | 6811.2 | rooster | a rooster crows at sunrise | -16 | -22.0 | -36.4 | -0.40 |

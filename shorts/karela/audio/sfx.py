@@ -117,22 +117,46 @@ def farm_bed(dur, r, birds=1.0, crickets=0.0, breeze=1.0, owl=False):
     return fades(x, 0.4, 0.5)
 
 
+# ---------------- ElevenLabs sound effects (el/*.wav, generated for this film) ----------------
+import os
+from scipy.io import wavfile as _wf
+_EL = {}
+def el(name, dur=None, xf=1.5):
+    """an ElevenLabs effect as stereo; with dur, tiled (crossfaded) to that length - the beds were generated as loops"""
+    if name not in _EL:
+        sr, x = _wf.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), "el", name + ".wav"))
+        x = x.astype(np.float64) / 32768.0
+        _EL[name] = (x.T if x.ndim == 2 else st(x))
+    x = _EL[name]
+    if dur is None:
+        return x.copy()
+    n, L, f = ns(dur), x.shape[1], ns(xf)
+    out = np.zeros((2, n)); pos = 0
+    ramp = np.linspace(0, 1, f)
+    while pos < n:
+        seg = x.copy()
+        if pos > 0: seg[:, :f] *= ramp
+        seg[:, -f:] *= ramp[::-1]
+        k = min(L, n - pos); out[:, pos:pos + k] += seg[:, :k]; pos += L - f
+    return fades(out, 0.5, 0.8)
+
+
 def cues():
     C = []
     R = rng(7311)
     rr = lambda: rng(int(R.integers(1 << 30)))
     add = C.append
     # beds: day birds, night crickets (silence around the boars' big moment is deliberate: only crickets)
-    for (a, b, seed, kw, lvl, desc) in [
-        (0.0, 52.8, 1, dict(birds=1.0), -29, "village morning: birds, breeze through the corn"),
-        (52.6, 72.6, 2, dict(birds=0, crickets=1.0, breeze=0.5), -31, "night: crickets"),
-        (72.5, 126.5, 3, dict(birds=0.7), -30, "day: birds, breeze"),
-        (126.4, 131.7, 4, dict(birds=0, crickets=1.0, breeze=0.5), -31, "night: crickets"),
-        (131.6, 236.9, 5, dict(birds=0.8), -30, "day: birds, breeze"),
-        (236.8, 283.5, 6, dict(birds=0, crickets=1.2, breeze=0.6), -30, "night: crickets, wind in the corn"),
-        (283.4, T.DUR, 7, dict(birds=1.3), -28, "sunrise: a chorus of birds"),
+    for (a, b, name, lvl, desc) in [
+        (0.0, 52.8, "birds_morning", -27, "village morning: songbirds, a cuckoo, breeze (ElevenLabs)"),
+        (52.6, 72.6, "night", -29, "night: crickets, wind in the corn, a far owl (ElevenLabs)"),
+        (72.5, 126.5, "birds_morning", -29, "day: birds (ElevenLabs)"),
+        (126.4, 131.7, "night", -29, "night (ElevenLabs)"),
+        (131.6, 236.9, "birds_morning", -29, "day: birds (ElevenLabs)"),
+        (236.8, 283.5, "night", -28, "night: crickets, wind, owl (ElevenLabs)"),
+        (283.4, T.DUR, "birds_morning", -26, "sunrise: a chorus of birds (ElevenLabs)"),
     ]:
-        add(Cue(a, "amb", desc, (lambda d=b - a + 0.3, s=seed, kw=kw: (farm_bed(d, rng(s), **kw), 0.0)), lvl, "bed", send=0.0))
+        add(Cue(a, "amb", desc, (lambda d=b - a + 0.3, nm=name: (el(nm, d), 0.0)), lvl, "bed", send=0.0))
     # Ramu's hoe in the first scene (strikes on the swing: k = 0.5 + 0.5 sin(3.2 t) peaks) and the ploughing
     for (a, b, w) in [(0.0, 23.9, 3.2), (T.PLOW[0], T.PLOW[1], 3.4)]:
         t = (np.pi / 2) / w
@@ -150,23 +174,23 @@ def cues():
     for (a, b, desc) in [(23.9, 26.0, "Ramu walks to the path"), (72.5, 75.7, "they hurry to the field"), (131.6, 134.3, "back to the field"), (283.4, 286.0, "a happy walk to the field")]:
         add(Cue(a, "steps", desc, (lambda d=b - a, r=rr(): (steps(d, r, 2.2), 0.0)), -20, send=0.1, group="steps"))
     # the nights: something in the corn
-    for (a, b) in [(T.NIGHT1[0] + 13.5, T.NIGHT1[1]), (T.NIGHT2[0] + 2.4, T.NIGHT2[1])]:
-        add(Cue(a, "corn_rustle", "something moves in the corn", (lambda d=b - a, r=rr(): (rustle(d, r, 0.9, 900, 5000), 0.0)), -16, p=0.4, send=0.25, group="corn_rustle"))
+    add(Cue(63.6, "destroy1", "in the dark: corn stalks snapping, leaves tearing, trampling (ElevenLabs)", lambda: (fades(np.concatenate([el("field_destroy"), el("field_destroy")[:, : ns(1.0)]], axis=1), 1.5, 1.2), 0.0), -13, p=0.35, send=0.25))
+    add(Cue(128.3, "destroy2", "again: the field being torn apart (ElevenLabs)", lambda: (fades(el("field_destroy")[:, ns(2.0): ns(5.4)], 0.6, 0.5), 0.0), -13, p=0.35, send=0.25))
     add(Cue(T.WRECK1 + 0.1, "sting1", "the ruined field: broken stalks creak in the wind", lambda: (rustle(3.0, rng(14), 0.5, 600, 3000), 0.0), -22, send=0.2))
     add(Cue(T.WRECK2 + 2.8, "sting2", "broken stalks again", lambda: (rustle(3.0, rng(15), 0.5, 600, 3000), 0.0), -22, send=0.2))
     add(Cue(T.GIVEUP - 3.0, "sit", "Ramu sinks down onto the soil", lambda: (thud(rng(16), 100, 0.3, 0.6), 0.0), -20, send=0.1))
     # the boars
     add(Cue(T.BOARS_OUT - 2.0, "bush", "the bushes shake", lambda: (rustle(2.5, rng(17), 1.1, 900, 6000), 0.0), -13, p=0.4, send=0.2))
-    for k in range(10):
-        add(Cue(T.BOARS_OUT + 0.6 * k, "grunt", "grunts as they trot out ('घुर्र! घुर्र!')", (lambda r=rr(): (grunt(r), 0.0)), -14, p=0.3 * np.sin(k), send=0.15, group="grunt"))
+    add(Cue(T.BOARS_OUT, "boars", "the herd trots out: deep snorting grunts, sniffing, rustling (ElevenLabs)", lambda: (el("boar_grunts"), 0.0), -10, p=0.3, send=0.15))
+    add(Cue(T.AT_VINES - 0.4, "boars2", "snuffling at the vines (ElevenLabs)", lambda: (fades(el("boar_grunts")[:, ns(3.0): ns(6.5)], 0.3, 0.5), 0.0), -12, p=0.2, send=0.12))
     add(Cue(T.BOARS_OUT, "trot", "hooves trotting", lambda: (hooves(6.0, rng(18), 6.0), 0.0), -18, send=0.12))
     add(Cue(T.AT_VINES, "sniff", "sniffing at the vines", lambda: (mixl([bp(rng(19 + k).standard_normal(ns(0.08)), 1500, 5000, 2) * np.exp(-tt(0.08) / 0.025) for k in range(8)], [0.14 * k for k in range(8)]), 0.0), -14, send=0.12))
-    add(Cue(T.BITE, "crunch", "CRUNCH: the first boar bites a karela", lambda: (crunch(rng(20), 2.4), 0.0), -9, send=0.12))
+    add(Cue(T.BITE, "crunch", "CRUNCH: the first boar bites a karela - chomping, then a disgusted snort and spit (ElevenLabs)", lambda: (el("crunch"), 0.0), -8, send=0.12))
     add(Cue(T.BITTER, "bitter", "the bitter taste: a slide-whistle fall + a disgusted 'उँह!'", lambda: (mixl([slide_down(rng(21)), grunt(rng(22), 100, 0.45)], [0, 0.35]), 0.0), -7, send=0.18))
     for j, t0 in enumerate(T.OTHERS):
         add(Cue(t0, "crunch2", "another boar bites", (lambda r=rr(): (crunch(r, 1.0), 0.0)), -13, p=0.3 * (j - 2) / 2, send=0.12, group="crunch2"))
         add(Cue(t0 + 1.4, "yuck", "and spits it out: a squeal + 'उँह! उँह!'", (lambda r=rr(), j=j: (mixl([grunt(r, squeal=True, dur=0.3), grunt(r, 105 + 8 * j, 0.25), grunt(r, 95 + 8 * j, 0.25)], [0, 0.3, 0.6]), 0.0)), -11, p=0.3 * (j - 2) / 2, send=0.15, group="yuck"))
-    add(Cue(T.RUN, "stampede", "they flee: hooves, squeals, a crash through the bushes", lambda: (mixl([hooves(6.0, rng(23), 12.0), grunt(rng(24), squeal=True, dur=0.5), grunt(rng(25), squeal=True, dur=0.4), rustle(2.0, rng(26), 1.0)], [0, 0.2, 0.9, 3.8]), 0.0), -10, p=0.4, send=0.18))
+    add(Cue(T.RUN, "stampede", "they flee: panicked squeals, hooves, a crash through the bushes, fading away (ElevenLabs)", lambda: (el("boar_run"), 0.0), -8, p=0.4, send=0.18))
     # sunrise
     add(Cue(T.SUNRISE + 0.4, "rooster", "a rooster crows at sunrise", lambda: (rooster(rng(27)), 0.0), -16, p=-0.4, send=0.3))
     return C
