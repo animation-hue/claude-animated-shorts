@@ -26,7 +26,7 @@ const tiles = () => ctex("kTiles", 256, 256, (g) => {
 });
 
 // ---------------- corn plant pieces ----------------
-const STALK = "#a7b246", LEAF = ["#b9c54c", "#a9bf45", "#c8c955"], COB = "#f2c443", HUSK = "#cfd27a", TASSEL = "#d9b26a";
+const STALK = "#9fbf4a", LEAF = ["#8fc24a", "#a6cc4e", "#c2cf58"], COB = "#f2c443", HUSK = "#cfd27a", TASSEL = "#d9b26a";
 const leafGeo = (len: number, w: number, droop: number) => {
   const n = 7, pos: number[] = [], idx: number[] = [];
   for (let i = 0; i <= n; i++) {
@@ -37,10 +37,10 @@ const leafGeo = (len: number, w: number, droop: number) => {
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
   return g;
 };
-const LEAFG = [leafGeo(1.0, 0.12, -0.7), leafGeo(0.9, 0.11, -1.0), leafGeo(0.8, 0.1, -0.45)];
+const LEAFG = [leafGeo(1.05, 0.17, -0.75), leafGeo(0.95, 0.16, -1.05), leafGeo(0.85, 0.14, -0.5)];
 const STALKG = new THREE.CylinderGeometry(0.022, 0.035, 1, 6).translate(0, 0.5, 0);
-const COBG = new THREE.CylinderGeometry(0.045, 0.035, 0.24, 8).translate(0, 0.12, 0);
-const HUSKG = new THREE.ConeGeometry(0.05, 0.22, 6).translate(0, 0.11, 0);
+const COBG = new THREE.CylinderGeometry(0.06, 0.045, 0.3, 10).translate(0, 0.15, 0);
+const HUSKG = new THREE.ConeGeometry(0.065, 0.2, 6).translate(0, 0.1, 0);
 const TASG = leafGeo(0.32, 0.025, 0.35);
 const m4 = (p: THREE.Vector3, q: THREE.Quaternion, s = 1) => new THREE.Matrix4().compose(p, q, V(s, s, s));
 const Q = (x: number, y: number, z: number) => new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z, "YXZ"));
