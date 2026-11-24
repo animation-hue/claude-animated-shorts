@@ -317,7 +317,12 @@ export const stage = (id: number, t: number, f: number, cam: CamInfo): Stage => 
     personAt(out, cam, "V", t);
     work(out, t);
   }
-  const dark = (t >= 62.9 && t < 72.5) || (t >= 126.4 && t < 131.6);
-  for (let i = 0; i < BOARS; i++) boar(out, cam, i, t, dark);
+  for (let i = 0; i < BOARS; i++) boar(out, cam, i, t, false);
+  // the first two nights: only the corn moves - shaking leaf lines over the stalks, nobody seen
+  if ((t >= 65.5 && t < 72.5) || (t >= 128.6 && t < 131.6)) for (let k = 0; k < 5; k++) {
+    const ph = t * 7 + k * 1.9, x = 9.5 + 1.4 * k + 0.6 * Math.sin(t * 0.8 + k), z = 7 + 2.6 * k;
+    out.fx.push({ key: `shake${Math.round((ph % 6.28) * 2)}`, cw: 256, ch: 256, draw: (p) => { for (const [a, l] of [[-0.6, 1], [0, 1.2], [0.6, 1]] as const) p.stroke([[128 + 60 * Math.sin(a + 0.1 * Math.sin(ph)), 120 - 60 * Math.cos(a)], [128 + 110 * l * Math.sin(a), 120 - 110 * l * Math.cos(a)]], 9, "#cfe0ff"); },
+      x, y: 2.5, z, w: 0.8, h: 0.8, rot: 0.2 * Math.sin(ph) });
+  }
   return out;
 };

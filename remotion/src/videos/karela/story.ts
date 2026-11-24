@@ -72,11 +72,7 @@ export type BoarState = { p: V3; dir: 1 | -1; face: "plain" | "sniff" | "chew" |
 const OFF: [number, number][] = [[0, 0], [0.9, 1.4], [1.1, -1.3], [2.0, 0.5], [2.4, 2.4], [2.6, -2.2]];
 export const boarAt = (i: number, t: number): BoarState | null => {
   const [ox, oz] = OFF[i], d = 0.35 * i;
-  // the first two nights: dark shapes slipping into the corn (no faces)
-  for (const [a, b] of [[66.0, 72.5], [128.8, 131.6]] as const) if (t >= a && t < b) {
-    const u = (t - a) / (b - a);
-    return { p: [lerp(20, 11.5, u) + ox, 0, 13 + oz], dir: -1, face: "plain", karela: 0, walk: 1, head: 0.2 };
-  }
+  // the boars are only ever seen in the last night (the first two nights show only the corn moving)
   if (t < 249.2 + d || t > 279) return null;
   const T0 = 249.2 + d, arrive = 255.4 + d, turn = 267.8 + 0.25 * i;
   const zz = 13 + oz, xs = 22 + ox, xv = VINE_X + 0.75 + 0.45 * ox;
@@ -176,7 +172,7 @@ const PLANS: Plan[] = [
   { t: 56.4, mood: "night", cam: (u) => orbit(add(ROOM, [0, 0.8, 1.4]), 3.8 - 0.5 * u, -8, 22, 40), dof: 3, focus: () => add(ROOM, [0, 0.7, 1.4]), kind: "room" },
   // ---- 05 the moonlit field: something moves
   { t: 62.9, mood: "night", cam: (u) => ({ pos: [lerp(-2, 6, u), 4.5, -6], look: [lerp(6, 10, u), 1.2, 13], fov: 38, roll: 0 }), dof: 0, kind: "wide" },
-  { t: 68.4, mood: "night", cam: (u) => orbit([14.5, 1.1, 13], 6.5 - 1.0 * u, 70, 8, 34), dof: 4, focus: () => [12, 1, 13] },
+  { t: 68.4, mood: "night", cam: (u) => orbit([12.5, 1.3, 11], 7.0 - 1.2 * u, 40, 6, 34), dof: 4, focus: () => [12.5, 1.3, 11], kind: "rustle" },
   // ---- 06 the morning: the field destroyed
   { t: 72.5, mood: "gloom", cam: (u) => glide({ pos: [4, 22, -26], look: [4, 0.5, 12], fov: 40, roll: 0 }, { pos: [3, 5, -5], look: [4, 0.6, 9], fov: 38, roll: 0 }, u), dof: 0, kind: "wide" },
   { t: 75.8, mood: "gloom", cam: (u, t) => orbit(hR(t), 2.1 - 0.25 * u, -20, 2, CU), dof: 11, focus: (t) => hR(t) },

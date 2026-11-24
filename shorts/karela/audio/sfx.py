@@ -152,7 +152,6 @@ def cues():
     # the nights: something in the corn
     for (a, b) in [(T.NIGHT1[0] + 13.5, T.NIGHT1[1]), (T.NIGHT2[0] + 2.4, T.NIGHT2[1])]:
         add(Cue(a, "corn_rustle", "something moves in the corn", (lambda d=b - a, r=rr(): (rustle(d, r, 0.9, 900, 5000), 0.0)), -16, p=0.4, send=0.25, group="corn_rustle"))
-        add(Cue(a + 1.5, "far_grunt", "a far grunt in the dark", (lambda r=rr(): (lp(grunt(r, 90, 0.3), 1500, 2), 0.0)), -20, p=0.5, send=0.35, group="far_grunt"))
     add(Cue(T.WRECK1 + 0.1, "sting1", "the ruined field: broken stalks creak in the wind", lambda: (rustle(3.0, rng(14), 0.5, 600, 3000), 0.0), -22, send=0.2))
     add(Cue(T.WRECK2 + 2.8, "sting2", "broken stalks again", lambda: (rustle(3.0, rng(15), 0.5, 600, 3000), 0.0), -22, send=0.2))
     add(Cue(T.GIVEUP - 3.0, "sit", "Ramu sinks down onto the soil", lambda: (thud(rng(16), 100, 0.3, 0.6), 0.0), -20, send=0.1))
